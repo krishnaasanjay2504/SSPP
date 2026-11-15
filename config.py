@@ -44,5 +44,12 @@ class Config:
     AI_MODE = os.environ.get("AI_MODE", "auto")
     AI_MODEL = os.environ.get("AI_MODEL", "claude-opus-5-5")
 
+    # ---- Hosting ----
+    SHOW_DEMO_LOGINS = os.environ.get("SHOW_DEMO_LOGINS", "1") == "1"   # demo credentials box on the login page
+    BEHIND_PROXY = os.environ.get("BEHIND_PROXY", "0") == "1"           # running behind nginx / a load balancer
+    SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "0") == "1"  # set to 1 once HTTPS is on
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+
     APP_NAME = "Smart Student Placement Portal"
     INSTITUTION = os.environ.get("INSTITUTION", "SSPP Institute of Technology")

@@ -85,6 +85,11 @@ AI feedback is presented as developmental guidance, never as a hiring decision.
 
 ## Hosting on the web
 
+**Free hosting:** see [deploy/DEPLOY.md](deploy/DEPLOY.md). One script sets up an Oracle Cloud Always Free VM with Oracle Database 23ai Free, nginx and HTTPS.
+
+General guidance for any server:
+
+
 1. Run behind a reverse proxy (IIS with ARR, nginx or Apache) that terminates HTTPS and forwards to `python run.py` (waitress, port 5000). Install it as a Windows service with NSSM or Task Scheduler so it restarts automatically.
 2. Set `SECRET_KEY`, change all demo passwords (or run `init_db.py --reset` and remove the demo users), and use a dedicated database user.
 3. **Coding practice executes student code on the server.** On a public host either set `CODE_EXEC_ENABLED=0` or run the app in a locked-down container/VM.

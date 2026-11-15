@@ -36,6 +36,9 @@ def create_app():
     app = Flask(__name__, template_folder="../templates", static_folder="../static")
     app.config.from_object("config.Config")
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+    if app.config.get("BEHIND_PROXY"):
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     db.init_pool(app.config)
     ai.configure(app)
