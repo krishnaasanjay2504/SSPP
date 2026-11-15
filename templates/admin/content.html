@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge with context %}
+{% block title %}Learning Content{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Learning Content Management</h1><p>Quizzes & questions, learning paths, interview question bank and coding problems.</p></div></div>
+<ul class="nav nav-pills mb-3">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="pill" href="#tq">Quizzes</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tp">Learning paths</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#ti">Interview questions</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tc">Coding problems</a></li>
+</ul>
+<div class="tab-content">
+  <div class="tab-pane fade show active" id="tq"><div class="row g-4">
+    <div class="col-xl-8"><div class="card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Quiz</th><th>Category</th><th>Topic</th><th>Questions</th><th>Attempts</th><th>Active</th><th></th></tr></thead><tbody>
+      {% for q in quizzes %}<tr><td class="fw-semibold">{{ q.title }}</td><td>{{ q.category|label }}</td><td>{{ q.topic }}</td><td>{{ q.nq }}</td><td>{{ q.attempts }}</td><td>{{ '🟢' if q.is_active else '⚪' }}</td><td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.quiz_edit', qid=q.id) }}">Edit</a></td></tr>{% endfor %}
+    </tbody></table></div></div></div>
+    <div class="col-xl-4"><div class="card"><div class="card-header">New quiz</div><form class="card-body" method="post" action="{{ url_for('admin.new_quiz') }}">
+      <input class="form-control mb-2" name="title" placeholder="Title" required>
+      <select class="form-select mb-2" name="category">{% for c in ['APTITUDE','TECHNICAL','MOCK','COMPANY'] %}<option>{{ c }}</option>{% endfor %}</select>
+      <input class="form-control mb-2" name="topic" placeholder="Topic (Java, SQL, Quantitative…)">
+      <input class="form-control mb-2" name="company" placeholder="Company (optional)">
+      <input class="form-control mb-2" type="number" name="duration_min" value="15" placeholder="Duration (min)">
+      <textarea class="form-control mb-2" name="description" rows="2" placeholder="Description"></textarea>
+      <button class="btn btn-primary w-100">Create & add questions</button></form></div></div>
+  </div></div>
+  <div class="tab-pane fade" id="tp"><div class="row g-4">
+    <div class="col-xl-8"><div class="card"><ul class="list-clean px-3">{% for p in paths %}<li class="d-flex justify-content-between align-items-center"><span><i class="bi bi-{{ p.icon }} me-2" style="color:{{ p.color }}"></i><strong>{{ p.name }}</strong> <span class="small text-muted">· {{ p.steps }} steps · {{ p.skill_tag }}</span></span><a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.path_edit', pid=p.id) }}">Edit steps</a></li>{% endfor %}</ul></div></div>
+    <div class="col-xl-4"><div class="card"><div class="card-header">New learning path</div><form class="card-body" method="post" action="{{ url_for('admin.new_path') }}">
+      <input class="form-control mb-2" name="name" placeholder="Name" required><input class="form-control mb-2" name="skill_tag" placeholder="Tag (e.g. JAVA)">
+      <textarea class="form-control mb-2" name="description" rows="2" placeholder="Description"></textarea>
+      <div class="row g-2 mb-2"><div class="col"><input class="form-control" name="icon" placeholder="Bootstrap icon (e.g. cup-hot)"></div><div class="col-4"><input class="form-control form-control-color w-100" type="color" name="color" value="#4f46e5"></div></div>
+      <button class="btn btn-primary w-100">Create path</button></form></div></div>
+  </div></div>
+  <div class="tab-pane fade" id="ti"><div class="row g-4">
+    <div class="col-xl-4"><div class="card"><div class="card-header">Question bank</div><ul class="list-clean px-3">{% for r in iq %}<li class="d-flex justify-content-between"><span>{{ r.category|label }}</span><strong>{{ r.n }}</strong></li>{% endfor %}</ul></div></div>
+    <div class="col-xl-8"><div class="card"><div class="card-header">Add interview / communication question</div><form class="card-body row g-2" method="post" action="{{ url_for('admin.new_interview_q') }}">
+      <div class="col-md-4"><select class="form-select" name="category">{% for c in ['TECHNICAL','HR','BEHAVIORAL','GD','EMAIL','PRESENTATION'] %}<option>{{ c }}</option>{% endfor %}</select></div>
+      <div class="col-md-4"><input class="form-control" name="topic" placeholder="Topic"></div><div class="col-md-4"><input class="form-control" name="company" placeholder="Company (optional)"></div>
+      <div class="col-12"><textarea class="form-control" name="question_text" rows="2" placeholder="Question" required></textarea></div>
+      <div class="col-12"><textarea class="form-control" name="model_answer" rows="3" placeholder="Model answer / key points"></textarea></div>
+      <div class="col-md-6"><input class="form-control" name="keywords" placeholder="Keywords for AI scoring (comma separated)"></div><div class="col-md-6"><input class="form-control" name="tips" placeholder="Tips"></div>
+      <div class="col-12"><button class="btn btn-primary">Add question</button></div></form></div></div>
+  </div></div>
+  <div class="tab-pane fade" id="tc"><div class="row g-4">
+    <div class="col-xl-5"><div class="card"><ul class="list-clean px-3">{% for p in problems %}<li class="d-flex justify-content-between"><a href="{{ url_for('learn.problem', pid=p.id) }}">{{ p.title }}</a><span>{{ badge(p.difficulty) }} <span class="small">{{ p.points }} pts</span></span></li>{% endfor %}</ul></div></div>
+    <div class="col-xl-7"><div class="card"><div class="card-header">Add coding problem</div><form class="card-body row g-2" method="post" action="{{ url_for('admin.new_problem') }}">
+      <div class="col-md-6"><input class="form-control" name="title" placeholder="Title" required></div><div class="col-md-3"><select class="form-select" name="difficulty"><option>EASY</option><option>MEDIUM</option><option>HARD</option></select></div><div class="col-md-3"><input class="form-control" name="points" type="number" value="10"></div>
+      <div class="col-12"><input class="form-control" name="topic" placeholder="Topic (Arrays, Strings, DP…)"></div>
+      <div class="col-12"><textarea class="form-control" name="statement" rows="4" placeholder="Problem statement (markdown)" required></textarea></div>
+      <div class="col-md-6"><textarea class="form-control" name="input_format" rows="2" placeholder="Input format"></textarea></div><div class="col-md-6"><textarea class="form-control" name="output_format" rows="2" placeholder="Output format"></textarea></div>
+      <div class="col-md-6"><textarea class="form-control font-monospace small" name="samples_json" rows="3" placeholder='Sample tests JSON: [{"input":"3\n1 2 3","output":"6"}]'></textarea></div>
+      <div class="col-md-6"><textarea class="form-control font-monospace small" name="tests_json" rows="3" placeholder='Hidden tests JSON'></textarea></div>
+      <div class="col-12"><textarea class="form-control font-monospace small" name="solution" rows="4" placeholder="Reference solution"></textarea></div>
+      <div class="col-12"><button class="btn btn-primary">Add problem</button></div></form></div></div>
+  </div></div>
+</div>
+{% endblock %}

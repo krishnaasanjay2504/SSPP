@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Placement Calendar{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Placement Calendar</h1><p>Drives, pre-placement talks, tests, interviews, training, results and deadlines. <a href="{{ url_for('main.notifications') }}">Configure reminders</a></p></div>
+  {% if has_role('TPO','ADMIN','FACULTY') %}<button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#evModal"><i class="bi bi-plus-lg me-1"></i>Add event</button>{% endif %}
+</div>
+<div class="row g-4">
+  <div class="col-xl-9"><div class="card p-3">
+    <div class="legend mb-2">{% for k, (l, c) in EVENT_TYPES.items() %}<span><i style="background:{{ c }}"></i>{{ l }}</span>{% endfor %}</div>
+    <div id="cal"></div></div></div>
+  <div class="col-xl-3">
+    <div class="card"><div class="card-header">Coming up</div>
+      <ul class="list-clean px-3">
+        {% for e in upcoming %}<li><div class="d-flex gap-2"><i class="bi bi-circle-fill mt-1" style="color:{{ EVENT_TYPES[e.event_type][1] }};font-size:.6rem"></i>
+          <div><div class="fw-semibold small">{{ e.title }}</div><div class="text-muted" style="font-size:.75rem">{{ e.start_at|dt }}</div></div></div></li>
+        {% else %}<li class="small text-muted">No upcoming events.</li>{% endfor %}
+      </ul></div>
+  </div>
+</div>
+
+<div class="modal fade" id="detailModal"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="dTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><span class="chip" id="dType"></span><dl class="kv mt-2"><dt>When</dt><dd id="dWhen"></dd><dt>Venue</dt><dd id="dVenue"></dd><dt>Company</dt><dd id="dCompany"></dd></dl><p id="dDesc" class="small mt-2"></p></div>
+  <div class="modal-footer"><a id="dDrive" class="btn btn-primary btn-sm d-none">Open drive</a>
+    {% if has_role('TPO','ADMIN','FACULTY') %}<form id="dDel" method="post" data-confirm="Delete this event?"><button class="btn btn-outline-danger btn-sm">Delete</button></form>{% endif %}</div>
+</div></div></div>
+
+{% if has_role('TPO','ADMIN','FACULTY') %}
+<div class="modal fade" id="evModal"><div class="modal-dialog"><form class="modal-content" method="post" action="{{ url_for('calendar.new_event') }}">
+  <div class="modal-header"><h5 class="modal-title">Add calendar event</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body row g-2">
+    <div class="col-12"><label class="form-label">Title</label><input class="form-control" name="title" required></div>
+    <div class="col-12"><label class="form-label">Type</label><select class="form-select" name="event_type">{% for k, (l, c) in EVENT_TYPES.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></div>
+    <div class="col-6"><label class="form-label">Start</label><input class="form-control" type="datetime-local" name="start_at" required></div>
+    <div class="col-6"><label class="form-label">End</label><input class="form-control" type="datetime-local" name="end_at"></div>
+    <div class="col-12"><label class="form-label">Venue</label><input class="form-control" name="venue"></div>
+    <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="2"></textarea></div>
+    <div class="col-12 form-check ms-2"><input class="form-check-input" type="checkbox" name="notify" id="nt" checked><label class="form-check-label" for="nt">Notify all students</label></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-primary">Add event</button></div>
+</form></div></div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+  const cal = new FullCalendar.Calendar(document.getElementById('cal'), {
+    initialView: window.innerWidth < 768 ? 'listMonth' : 'dayGridMonth', height: 'auto', nowIndicator: true, dayMaxEvents: 3,
+    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listMonth' },
+    events: '{{ url_for("calendar.api_events") }}',
+    eventClick: (info) => {
+      const e = info.event, p = e.extendedProps;
+      document.getElementById('dTitle').textContent = e.title;
+      document.getElementById('dType').textContent = p.type;
+      document.getElementById('dWhen').textContent = e.start.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) + (e.end ? ' – ' + e.end.toLocaleTimeString([], { timeStyle: 'short' }) : '');
+      document.getElementById('dVenue').textContent = p.venue || '—';
+      document.getElementById('dCompany').textContent = p.company || '—';
+      document.getElementById('dDesc').textContent = p.description || '';
+      const a = document.getElementById('dDrive');
+      if (p.drive_id) { a.href = '/drives/' + p.drive_id; a.classList.remove('d-none'); } else a.classList.add('d-none');
+      const del = document.getElementById('dDel'); if (del) del.action = '/calendar/' + e.id + '/delete';
+      modal.show();
+    }
+  });
+  cal.render();
+});
+</script>
+{% endblock %}

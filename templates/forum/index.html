@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty with context %}
+{% block title %}Q&A Forum{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Q&A / Doubt Clearing</h1><p>Ask questions, get answers from peers, faculty and alumni. Verified answers are marked by faculty.</p></div>
+  <a class="btn btn-gradient" href="{{ url_for('forum.ask') }}"><i class="bi bi-plus-lg me-1"></i>Ask a question</a></div>
+<div class="row g-4">
+  <div class="col-xl-9">
+    <div class="card p-3 mb-3"><form class="d-flex gap-2"><input class="form-control" name="q" value="{{ a.get('q','') }}" placeholder="Search previous questions…">
+      {% if a.get('tag') %}<input type="hidden" name="tag" value="{{ a.tag }}">{% endif %}<button class="btn btn-primary"><i class="bi bi-search"></i></button></form>
+      <div class="d-flex flex-wrap gap-1 mt-3">
+        {% for v, l in [('', 'Latest'), ('unanswered', 'Unanswered'), ('following', 'Following'), ('bookmarks', 'Bookmarks'), ('alumni', 'Ask Alumni')] %}
+        <a class="chip {{ '' if (a.get('view') or '') == v else 'gray' }}" href="{{ url_for('forum.index', view=v or None) }}">{{ l }}</a>{% endfor %}
+        <span class="ms-auto small">Sort: <a href="{{ url_for('forum.index', **dict(a, sort='votes')) }}">votes</a> · <a href="{{ url_for('forum.index', **dict(a, sort='views')) }}">views</a></span>
+      </div>
+      {% if a.get('tag') %}<div class="mt-2 small">Tag: <span class="chip">{{ a.tag }}</span> <a href="{{ url_for('forum.index') }}">clear</a></div>{% endif %}
+    </div>
+    <div class="card">
+    {% for q in rows %}
+      <div class="d-flex gap-3 p-3 border-bottom">
+        <div class="text-center small text-muted" style="min-width:70px">
+          <div><strong class="text-body">{{ q.votes }}</strong> votes</div>
+          <div class="my-1 px-1 rounded {{ 'bg-success text-white' if q.accepted_answer_id else ('border border-success text-success' if q.answers else '') }}"><strong>{{ q.answers }}</strong> ans</div>
+          <div>{{ q.views }} views</div>
+        </div>
+        <div class="flex-grow-1">
+          <a class="fw-semibold fs-6" href="{{ url_for('forum.thread', qid=q.id) }}">{{ q.title }}</a>
+          {% if q.audience == 'ALUMNI' %}<span class="chip amber ms-1">Alumni Q&A</span>{% endif %}
+          <div class="mt-1">{% for t in q.tags|csv %}<a class="chip" href="{{ url_for('forum.index', tag=t) }}">{{ t }}</a>{% endfor %}</div>
+          <div class="small text-muted">asked by {{ q.full_name }} ({{ ROLE_LABELS[q.user_role] }}) · {{ q.created_at|ago }}</div>
+        </div>
+      </div>
+    {% else %}{{ empty('chat-square-text', 'No questions found. Be the first to ask!') }}{% endfor %}
+    </div>
+  </div>
+  <div class="col-xl-3">
+    <div class="card"><div class="card-header">Topics</div><div class="card-body tag-cloud">
+      {% for t in tags %}<div class="d-flex justify-content-between align-items-center"><a class="chip" href="{{ url_for('forum.index', tag=t) }}">{{ t }}</a>
+        <form method="post" action="{{ url_for('forum.follow', tag=t) }}"><button class="btn btn-link btn-sm p-0 small">{{ 'Unfollow' if t in follows else 'Follow' }}</button></form></div>{% endfor %}
+    </div></div>
+  </div>
+</div>
+{% endblock %}

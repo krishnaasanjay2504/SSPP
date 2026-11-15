@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty with context %}
+{% block title %}Quizzes & Assessments{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Quizzes & Assessments</h1><p>Topic-wise quizzes, aptitude tests and mock placement tests — with explanations for every answer. Retry any time.</p></div>
+  {% if has_role('TPO','ADMIN','FACULTY') %}<a class="btn btn-outline-primary" href="{{ url_for('admin.content') }}"><i class="bi bi-gear me-1"></i>Manage quizzes</a>{% endif %}</div>
+<ul class="nav nav-pills mb-3">
+  <li class="nav-item"><a class="nav-link {{ 'active' if not cat }}" href="{{ url_for('learn.quizzes') }}">All</a></li>
+  {% for k, v in cats.items() %}<li class="nav-item"><a class="nav-link {{ 'active' if cat==k }}" href="{{ url_for('learn.quizzes', category=k) }}">{{ v }}</a></li>{% endfor %}
+</ul>
+<div class="row g-4">
+  <div class="col-xl-9"><div class="row g-3">
+  {% for q in quizzes %}
+    <div class="col-md-6 col-xxl-4"><div class="card drive-card h-100"><div class="card-body">
+      <div class="d-flex justify-content-between mb-2"><span class="chip">{{ cats.get(q.category, q.category) }}</span>{% if q.best is not none %}<span class="chip {{ 'green' if q.best >= 70 else 'amber' }}">Best {{ q.best|round|int }}%</span>{% endif %}</div>
+      <h6 class="fw-bold">{{ q.title }}</h6>
+      <div class="small text-muted mb-2">{{ q.description or '' }}</div>
+      <div class="small"><i class="bi bi-list-ol me-1"></i>{{ q.nq }} questions · <i class="bi bi-clock me-1"></i>{{ q.duration_min }} min{% if q.topic %} · {{ q.topic }}{% endif %}{% if q.company %} · {{ q.company }}{% endif %}</div>
+    </div><div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+      <span class="small text-muted">{{ q.tries }} attempt(s)</span>
+      <a class="btn btn-sm btn-primary {{ 'disabled' if not q.nq }}" href="{{ url_for('learn.quiz_start', qid=q.id) }}">{{ 'Retry' if q.tries else 'Start' }}</a></div></div></div>
+  {% else %}<div class="col-12"><div class="card">{{ empty('ui-checks', 'No quizzes yet.') }}</div></div>{% endfor %}
+  </div></div>
+  <div class="col-xl-3"><div class="card"><div class="card-header">Recent attempts</div>
+    <ul class="list-clean px-3">{% for h in history %}<li><a class="small fw-semibold" href="{{ url_for('learn.attempt', aid=h.id) }}">{{ h.title }}</a><div class="small text-muted">{{ h.score }}/{{ h.max_score }} · {{ h.accuracy }}% accuracy · {{ h.submitted_at|ago }}</div></li>{% else %}<li class="small text-muted">No attempts yet.</li>{% endfor %}</ul></div></div>
+</div>
+{% endblock %}

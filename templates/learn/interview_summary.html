@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring with context %}
+{% block title %}Interview summary{% endblock %}
+{% block content %}
+{% set avg = s.avg_score or 0 %}
+<div class="page-head"><div><h1>Mock interview summary</h1><p>{{ s.category|label }}{% if s.topic %} · {{ s.topic }}{% endif %} · {{ s.created_at|dt }}</p></div>
+  <a class="btn btn-gradient" href="{{ url_for('learn.interview_bank') }}"><i class="bi bi-arrow-repeat me-1"></i>Practice again</a></div>
+<div class="card p-4 mb-4 d-flex flex-row gap-4 align-items-center">
+  {{ ring((avg * 10)|round|int, '#16a34a' if avg >= 7 else '#f59e0b', false, '%.1f'|format(avg)) }}
+  <div><h5 class="fw-bold mb-1">Average score {{ '%.1f'|format(avg) }} / 10</h5>
+  <div class="text-muted">{% if avg >= 7 %}Strong answers — keep refining with company-specific practice.{% elif avg >= 5 %}Good foundation. Work on structure, specifics and key concepts.{% else %}Keep practising: structure your answers (STAR) and cover key concepts.{% endif %}</div></div>
+</div>
+{% for a in answered %}
+<div class="card mb-3"><div class="card-body">
+  <div class="d-flex justify-content-between"><strong>Q{{ loop.index }}. {{ a.question_text }}</strong><span class="chip {{ 'green' if a.score >= 7 else ('amber' if a.score >= 5 else 'red') }}">{{ a.score }}/10</span></div>
+  <div class="small mt-2 p-2 rounded-3" style="background:var(--bg)">{{ a.response }}</div>
+  <div class="small mt-2">{{ a.feedback|md }}</div>
+</div></div>
+{% endfor %}
+{% endblock %}

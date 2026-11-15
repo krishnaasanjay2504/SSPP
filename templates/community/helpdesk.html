@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, empty with context %}
+{% block title %}Helpdesk{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Helpdesk & Support</h1><p>{{ 'Respond to tickets raised by students, recruiters and alumni.' if staff else 'Raise a ticket for any placement-related issue.' }}</p></div></div>
+<div class="row g-4">
+  <div class="col-xl-{{ 12 if staff else 8 }}">
+    {% for t in rows %}
+    <div class="card mb-3"><div class="card-body">
+      <div class="d-flex justify-content-between"><div><strong>#{{ t.id }} · {{ t.subject }}</strong><div class="small text-muted">{{ t.category }} · {{ t.full_name }} ({{ ROLE_LABELS[t.user_role] }}) · {{ t.created_at|ago }}</div></div>{{ badge(t.status) }}</div>
+      <div class="small mt-2">{{ t.body|nl2br }}</div>
+      {% if t.response %}<div class="small mt-2 p-2 rounded-3 border-start border-4 border-success"><strong>Placement cell:</strong> {{ t.response|nl2br }}</div>{% endif %}
+      {% if staff and t.status != 'RESOLVED' %}
+      <form method="post" class="row g-2 mt-2"><input type="hidden" name="ticket_id" value="{{ t.id }}">
+        <div class="col-md-8"><input class="form-control form-control-sm" name="response" placeholder="Response" value="{{ t.response or '' }}"></div>
+        <div class="col-md-2"><select class="form-select form-select-sm" name="status"><option value="IN_PROGRESS">In progress</option><option value="RESOLVED" selected>Resolved</option></select></div>
+        <div class="col-md-2"><button class="btn btn-sm btn-primary w-100">Update</button></div></form>{% endif %}
+    </div></div>
+    {% else %}<div class="card">{{ empty('life-preserver', 'No tickets.') }}</div>{% endfor %}
+  </div>
+  {% if not staff %}
+  <div class="col-xl-4"><div class="card"><div class="card-header">Raise a ticket</div>
+    <form class="card-body" method="post">
+      <label class="form-label small">Category</label><select class="form-select mb-2" name="category">{% for c in ['Profile / Eligibility','Drive registration','Technical issue','Offer letter','Suspicious job posting','Other'] %}<option>{{ c }}</option>{% endfor %}</select>
+      <label class="form-label small">Subject</label><input class="form-control mb-2" name="subject" required>
+      <label class="form-label small">Details</label><textarea class="form-control mb-2" rows="5" name="body" required></textarea>
+      <button class="btn btn-gradient w-100">Submit</button></form></div></div>
+  {% endif %}
+</div>
+{% endblock %}

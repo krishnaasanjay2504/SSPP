@@ -1,0 +1,16 @@
+<html><head><meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 1.4cm 1.5cm; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #222; }
+  .rhead { {% if r.template_code in ('modern','elegant','teal') %}background-color: {{ color }}; color: #fff; padding: 12px;{% else %}border-bottom: 2px solid {{ color }}; padding-bottom: 6px;{% endif %} }
+  .rname { font-size: 20pt; font-weight: bold; {% if r.template_code == 'classic' %}text-align: center;{% endif %} }
+  .rrole { font-size: 11pt; margin-top: 2px; }
+  .rcontact { font-size: 8.5pt; margin-top: 3px; }
+  .rsec { font-size: 11pt; font-weight: bold; color: {{ color }}; text-transform: uppercase; border-bottom: 1px solid {{ '#ccc' if r.template_code == 'minimal' else color }}; margin-top: 12px; margin-bottom: 4px; padding-bottom: 2px; }
+  .rtext { margin: 2px 0 4px 0; line-height: 1.35; }
+  .ritem { margin-top: 4px; } .rdate { font-size: 8.5pt; color: #555; }
+  .small { font-size: 8.5pt; }
+</style></head>
+<body>
+{% include "resume/_body.html" %}
+</body></html>

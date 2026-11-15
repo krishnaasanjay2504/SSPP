@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Mock Interview{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Mock Interview · {{ s.category|label }}</h1><p>Question {{ i + 1 }} of {{ n }}</p></div>
+  <div style="width:240px"><div class="meter"><span style="width:{{ ((i + (1 if fb else 0)) / n * 100)|round }}%"></span></div></div></div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card mb-3"><div class="card-body d-flex gap-3">
+      <div class="avatar"><i class="bi bi-robot"></i></div>
+      <div><div class="small text-muted">Interviewer{% if q.topic %} · {{ q.topic }}{% endif %}</div><div class="fs-5 fw-semibold">{{ q.question_text }}</div></div></div></div>
+    <form method="post" class="card"><div class="card-body">
+      <label class="form-label fw-semibold">Your answer</label>
+      <textarea class="form-control mb-2" rows="9" name="response" id="resp" {{ 'readonly' if fb }} required placeholder="Type your answer, or click Speak and answer aloud…">{{ response }}</textarea>
+      <div class="d-flex gap-2 align-items-center">
+        {% if not fb %}<button type="button" class="btn btn-outline-secondary btn-sm" id="micBtn"><i class="bi bi-mic"></i> Speak</button>
+        <span class="small text-muted" id="wc">0 words</span>
+        <button class="btn btn-gradient ms-auto">Submit answer</button>
+        {% else %}<a class="btn btn-gradient ms-auto" href="{{ url_for('learn.interview_session', sid=s.id, i=i+1) }}">{{ 'Next question' if i + 1 < n else 'Finish & see summary' }} <i class="bi bi-arrow-right"></i></a>{% endif %}
+      </div>
+    </div></form>
+  </div>
+  <div class="col-lg-5">
+    {% if fb %}
+    <div class="card border-primary"><div class="card-header d-flex justify-content-between"><span><i class="bi bi-clipboard-data me-1"></i>Feedback</span><span class="fs-5 fw-bold text-primary">{{ fb.score }}/10</span></div>
+      <div class="card-body"><ul class="small">{% for f in fb.feedback %}<li class="mb-1">{{ f }}</li>{% endfor %}</ul>
+        {% if fb.ai %}<div class="msg ai mw-100 small"><div class="fw-bold mb-1"><i class="bi bi-stars me-1"></i>AI coach</div>{{ fb.ai|md }}</div>{% endif %}
+        {% if q.model_answer %}<details class="small"><summary class="text-primary">Reference answer</summary><div class="mt-2">{{ q.model_answer|nl2br }}</div></details>{% endif %}
+        <p class="small text-muted mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>This is practice feedback to help you improve — not an assessment of hireability.</p></div></div>
+    {% else %}
+    <div class="card"><div class="card-body small">
+      <h6 class="fw-bold">Tips</h6>
+      <ul>{% if s.category in ('HR','BEHAVIORAL') %}<li>Use STAR: Situation, Task, Action, Result.</li><li>Be specific — numbers and outcomes.</li>{% else %}<li>Define the concept, then give an example.</li><li>Mention trade-offs and real use cases.</li>{% endif %}<li>Aim for 60–150 words (about 1–2 minutes spoken).</li></ul>
+      {% if q.tips %}<div class="alert alert-info small mb-0">{{ q.tips }}</div>{% endif %}
+    </div></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const resp = document.getElementById('resp'), wc = document.getElementById('wc');
+if (wc) { const upd = () => wc.textContent = (resp.value.trim().split(/\s+/).filter(Boolean).length) + ' words'; resp.addEventListener('input', upd); upd(); }
+const mic = document.getElementById('micBtn'); const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (mic) { if (!SR) mic.disabled = true; else {
+  const rec = new SR(); rec.lang = 'en-IN'; rec.continuous = true; let on = false;
+  rec.onresult = e => { for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) resp.value += e.results[i][0].transcript + ' '; resp.dispatchEvent(new Event('input')); };
+  mic.onclick = () => { on ? rec.stop() : rec.start(); on = !on; mic.classList.toggle('btn-danger', on); mic.innerHTML = on ? '<i class="bi bi-stop-fill"></i> Stop' : '<i class="bi bi-mic"></i> Speak'; };
+}}
+</script>
+{% endblock %}

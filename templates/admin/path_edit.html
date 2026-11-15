@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Edit path{% endblock %}
+{% block content %}
+<a class="small" href="{{ url_for('admin.content') }}"><i class="bi bi-arrow-left"></i> Content</a>
+<div class="page-head mt-2"><div><h1><i class="bi bi-{{ p.icon }}" style="color:{{ p.color }}"></i> {{ p.name }}</h1><p>{{ p.description }}</p></div><a class="btn btn-outline-primary" href="{{ url_for('learn.path', pid=p.id) }}">View as student</a></div>
+<div class="row g-4">
+  <div class="col-xl-7"><div class="card"><ul class="list-clean px-3">
+    {% for s in steps %}<li class="d-flex justify-content-between"><span><strong>{{ s.seq }}.</strong> {{ s.title }} <span class="chip gray">{{ s.content_kind }}</span></span>
+      <form method="post" data-confirm="Delete step?"><input type="hidden" name="action" value="delete"><input type="hidden" name="step_id" value="{{ s.id }}"><button class="btn btn-sm btn-link text-danger"><i class="bi bi-trash"></i></button></form></li>{% else %}<li class="text-muted small">No steps yet.</li>{% endfor %}
+  </ul></div></div>
+  <div class="col-xl-5"><div class="card"><div class="card-header">Add step</div><form class="card-body" method="post">
+    <input class="form-control mb-2" name="title" placeholder="Title" required>
+    <select class="form-select mb-2" name="content_kind">{% for k in ['VIDEO','NOTES','TUTORIAL','PRACTICE','CODING','ASSIGNMENT','QUIZ','ASSESSMENT'] %}<option>{{ k }}</option>{% endfor %}</select>
+    <textarea class="form-control mb-2" name="content" rows="5" placeholder="Notes / instructions (markdown)"></textarea>
+    <input class="form-control mb-2" name="resource_url" placeholder="Resource URL (video, tutorial)">
+    <select class="form-select mb-2" name="quiz_id"><option value="">Link a quiz (optional)</option>{% for q in quizzes %}<option value="{{ q.id }}">{{ q.title }}</option>{% endfor %}</select>
+    <button class="btn btn-primary w-100">Add step</button></form></div></div>
+</div>
+{% endblock %}

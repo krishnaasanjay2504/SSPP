@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty with context %}
+{% block title %}Interview Preparation{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Interview Preparation</h1><p>Technical, HR and behavioural question bank with model answers — plus AI mock interviews.</p></div></div>
+<div class="row g-4">
+  <div class="col-xl-8">
+    <form class="card p-3 mb-3 row g-2 flex-row mx-0">
+      <div class="col-md-3"><select class="form-select" name="category"><option value="">All categories</option>{% for c in ['TECHNICAL','HR','BEHAVIORAL'] %}<option value="{{ c }}" {{ 'selected' if a.get('category')==c }}>{{ c|label }}</option>{% endfor %}</select></div>
+      <div class="col-md-3"><select class="form-select" name="topic"><option value="">All topics</option>{% for t in topics %}<option {{ 'selected' if a.get('topic')==t }}>{{ t }}</option>{% endfor %}</select></div>
+      <div class="col-md-3"><select class="form-select" name="company"><option value="">Any company</option>{% for c in companies %}<option {{ 'selected' if a.get('company')==c }}>{{ c }}</option>{% endfor %}</select></div>
+      <div class="col-md-2"><input class="form-control" name="q" value="{{ a.get('q','') }}" placeholder="Search"></div>
+      <div class="col-md-1"><button class="btn btn-primary w-100"><i class="bi bi-funnel"></i></button></div>
+    </form>
+    <div class="accordion" id="iq">
+    {% for r in rows %}
+      <div class="accordion-item card mb-2 overflow-hidden">
+        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q{{ r.id }}">
+          <span class="chip me-2">{{ r.category|label }}</span>{% if r.topic %}<span class="chip gray me-2">{{ r.topic }}</span>{% endif %}{% if r.company %}<span class="chip amber me-2">{{ r.company }}</span>{% endif %}<span class="fw-semibold">{{ r.question_text }}</span></button></h2>
+        <div id="q{{ r.id }}" class="accordion-collapse collapse" data-bs-parent="#iq"><div class="accordion-body">
+          {% if r.model_answer %}<div class="mb-2">{{ r.model_answer|nl2br }}</div>{% endif %}
+          {% if r.tips %}<div class="alert alert-info small mb-0"><i class="bi bi-lightbulb me-1"></i>{{ r.tips }}</div>{% endif %}
+        </div></div>
+      </div>
+    {% else %}<div class="card">{{ empty('mic', 'No questions match.') }}</div>{% endfor %}
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="card mb-4 border-primary"><div class="card-header text-primary"><i class="bi bi-robot me-1"></i>AI Mock Interview</div>
+      <form class="card-body" method="post" action="{{ url_for('learn.interview_start') }}">
+        <p class="small text-muted">AI asks a question → you answer → AI analyses → improvement suggestions → next question. Feedback is developmental, not a hiring decision.</p>
+        <label class="form-label small">Interview type</label>
+        <select class="form-select mb-2" name="category">{% for c in ['TECHNICAL','HR','BEHAVIORAL'] %}<option value="{{ c }}">{{ c|label }}</option>{% endfor %}</select>
+        <label class="form-label small">Topic (optional)</label>
+        <select class="form-select mb-2" name="topic"><option value="">Mixed</option>{% for t in topics %}<option>{{ t }}</option>{% endfor %}</select>
+        <label class="form-label small">Questions</label>
+        <select class="form-select mb-3" name="count">{% for n in [3,5,8] %}<option {{ 'selected' if n==5 }}>{{ n }}</option>{% endfor %}</select>
+        <button class="btn btn-gradient w-100"><i class="bi bi-play-fill me-1"></i>Start mock interview</button>
+      </form></div>
+    <div class="card"><div class="card-header">My practice sessions</div>
+      <ul class="list-clean px-3">{% for s in sessions %}<li class="d-flex justify-content-between"><a class="small" href="{{ url_for('learn.interview_session', sid=s.id) }}">{{ s.category|label }}{% if s.topic %} · {{ s.topic }}{% endif %}</a><span class="small">{% if s.completed %}<strong>{{ '%.1f'|format(s.avg_score or 0) }}/10</strong>{% else %}<span class="text-muted">in progress</span>{% endif %}</span></li>{% else %}<li class="small text-muted">No sessions yet.</li>{% endfor %}</ul></div>
+  </div>
+</div>
+{% endblock %}

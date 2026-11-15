@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Communication Skills{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Communication Skills</h1><p>Group discussion topics, email writing, presentation skills, speaking practice and HR preparation.</p></div>
+  {% if path %}<a class="btn btn-outline-primary" href="{{ url_for('learn.path', pid=path.id) }}"><i class="bi bi-signpost-split me-1"></i>Communication path</a>{% endif %}</div>
+<div class="row g-4">
+  <div class="col-xl-7">
+    {% for cat, label, ic in [('GD','Group Discussion topics','people'),('EMAIL','Email writing tasks','envelope'),('PRESENTATION','Presentation & speaking','easel')] %}
+    <div class="card mb-4"><div class="card-header"><i class="bi bi-{{ ic }} me-1"></i>{{ label }}</div>
+      <div class="list-group list-group-flush">
+      {% for q in by.get(cat, []) %}
+        <div class="list-group-item bg-transparent">
+          <div class="d-flex justify-content-between gap-2"><strong>{{ q.question_text }}</strong>
+            <button class="btn btn-sm btn-outline-primary text-nowrap" onclick="practice({{ q.id }}, '{{ cat }}', {{ q.question_text|tojson|forceescape }})">Practice</button></div>
+          {% if q.tips %}<div class="small text-muted mt-1"><i class="bi bi-lightbulb me-1"></i>{{ q.tips }}</div>{% endif %}
+          {% if q.model_answer %}<details class="small mt-1"><summary class="text-primary">Key points / sample</summary><div class="mt-1">{{ q.model_answer|nl2br }}</div></details>{% endif %}
+        </div>
+      {% endfor %}
+      </div></div>
+    {% endfor %}
+  </div>
+  <div class="col-xl-5">
+    <div class="card timer" id="practiceCard"><div class="card-header"><i class="bi bi-mic me-1"></i>Practice & get feedback</div>
+      <form method="post" class="card-body">
+        <input type="hidden" name="qid" id="pqid" value="{{ form.get('qid','') }}"><input type="hidden" name="kind" id="pkind" value="{{ form.get('kind','GD') }}">
+        <div class="small text-muted mb-1">Task</div><div class="fw-semibold mb-2" id="ptask">{{ 'Choose a topic on the left and click Practice' }}</div>
+        <textarea class="form-control mb-2" rows="9" name="text" id="ptext" placeholder="Write your GD points, email or a transcript of what you would say…" required>{{ form.get('text','') }}</textarea>
+        <div class="d-flex gap-2"><button type="button" class="btn btn-outline-secondary btn-sm" id="micBtn"><i class="bi bi-mic"></i> Speak</button><button class="btn btn-gradient btn-sm ms-auto">Get feedback</button></div>
+      </form>
+      {% if result %}
+      <div class="card-body border-top">
+        {% if result.kind == 'EMAIL' %}
+          <h6 class="fw-bold">Email checklist</h6>
+          {% for k, v in result.checks.items() %}<div class="small"><i class="bi bi-{{ 'check-circle-fill text-success' if v else 'x-circle-fill text-danger' }} me-1"></i>{{ k }}</div>{% endfor %}
+          {% if result.issues %}<h6 class="fw-bold mt-3">Language suggestions</h6><ul class="small">{% for i in result.issues %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
+        {% else %}
+          <div class="d-flex align-items-center gap-2 mb-2"><span class="fs-3 fw-bold">{{ result.score }}/10</span><span class="small text-muted">developmental score</span></div>
+          <ul class="small">{% for f in result.feedback %}<li>{{ f }}</li>{% endfor %}</ul>
+        {% endif %}
+        {% if result.ai %}<div class="msg ai mw-100 small mt-2"><div class="fw-bold mb-1"><i class="bi bi-stars me-1"></i>AI coach</div>{{ result.ai|md }}</div>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function practice(id, kind, text) {
+  document.getElementById('pqid').value = id; document.getElementById('pkind').value = kind;
+  document.getElementById('ptask').textContent = text; document.getElementById('ptext').focus();
+}
+// Browser speech-to-text for speaking practice (Chrome/Edge)
+const mic = document.getElementById('micBtn'); const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SR) mic.disabled = true; else {
+  const rec = new SR(); rec.lang = 'en-IN'; rec.continuous = true; rec.interimResults = false; let on = false;
+  rec.onresult = e => { for (let i = e.resultIndex; i < e.results.length; i++) document.getElementById('ptext').value += e.results[i][0].transcript + ' '; };
+  mic.onclick = () => { on ? rec.stop() : rec.start(); on = !on; mic.classList.toggle('btn-danger', on); mic.innerHTML = on ? '<i class="bi bi-stop-fill"></i> Stop' : '<i class="bi bi-mic"></i> Speak'; };
+}
+</script>
+{% endblock %}

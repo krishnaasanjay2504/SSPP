@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stat with context %}
+{% block title %}Placement Reports{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Placement Reports & Analytics</h1><p>Breakdowns by department, batch, company, role, gender, CTC range, skill and placement status.</p></div>
+  <a class="btn btn-outline-primary" href="{{ url_for('analytics.reports', export=1, **a.to_dict()) }}"><i class="bi bi-download me-1"></i>Export CSV</a></div>
+<form class="card p-3 mb-4 row g-2 flex-row mx-0 align-items-end">
+  <div class="col-md-3"><label class="form-label small">Breakdown</label><select class="form-select" name="dim">{% for k, v in [('department','Department'),('batch','Batch'),('company','Company'),('role','Role'),('gender','Gender'),('ctc','CTC range'),('skill','Skill'),('status','Placement status')] %}<option value="{{ k }}" {{ 'selected' if dim==k }}>{{ v }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label class="form-label small">Batch</label><select class="form-select" name="batch"><option value="">All batches</option>{% for b in batches %}<option {{ 'selected' if a.get('batch')==b|string }}>{{ b }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label class="form-label small">Department</label><select class="form-select" name="dept"><option value="">All departments</option>{% for d in DEPARTMENTS %}<option {{ 'selected' if a.get('dept')==d }}>{{ d }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><button class="btn btn-primary w-100">Apply</button></div>
+</form>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-2">{{ stat('people', k.total, 'Students') }}</div>
+  <div class="col-6 col-lg-2">{{ stat('person-check', k.eligible, 'Eligible', 'sky') }}</div>
+  <div class="col-6 col-lg-2">{{ stat('trophy', k.placed, 'Placed', 'green') }}</div>
+  <div class="col-6 col-lg-2">{{ stat('percent', k.pct ~ '%', 'Placement %', 'violet') }}</div>
+  <div class="col-6 col-lg-2">{{ stat('envelope-paper', k.offers, 'Offers', 'amber') }}</div>
+  <div class="col-6 col-lg-2">{{ stat('cash-stack', '₹' ~ k.highest, 'Highest · median ₹' ~ k.median, 'rose') }}</div>
+</div>
+{% if dim == 'gender' %}<div class="alert alert-info small"><i class="bi bi-shield-lock me-1"></i>Gender breakdowns are provided for diversity reporting where legitimately required. Handle according to your institution's data-governance policy; do not use for individual decisions.</div>{% endif %}
+<div class="row g-4">
+  <div class="col-xl-6"><div class="card h-100"><div class="card-body"><canvas id="rep" height="230"></canvas></div></div></div>
+  <div class="col-xl-6"><div class="card h-100"><div class="table-responsive"><table class="table mb-0">
+    <thead><tr>{% for c in (rows[0].keys() if rows else []) %}<th>{{ 'Value' if c == 'dim' else c|replace('_', ' ')|title }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for r in rows %}<tr>{% for v in r.values() %}<td>{{ v if v is not none else '—' }}</td>{% endfor %}</tr>{% else %}<tr><td class="text-muted">No data.</td></tr>{% endfor %}</tbody></table></div></div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const rows = {{ rows|tojson }};
+if (rows.length) {
+  const keys = Object.keys(rows[0]).filter(k => k !== 'dim' && typeof rows[0][k] === 'number' && !['pct','avg_cgpa','ctc','highest','average'].includes(k));
+  new Chart(rep, { type: 'bar', data: { labels: rows.map(r => r.dim ?? '—'), datasets: keys.map((k, i) => ({ label: k.replace('_', ' '), data: rows.map(r => r[k]), backgroundColor: ssppChartColors[i], borderRadius: 6 })) },
+    options: { plugins: { legend: { position: 'bottom' } } } });
+}
+</script>
+{% endblock %}

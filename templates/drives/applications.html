@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, logo, app_stepper, empty with context %}
+{% block title %}My Applications{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Application Tracker</h1><p>Applied → Shortlisted → Assessment → Technical Interview → HR Interview → Selected / Rejected</p></div></div>
+{% for a in apps %}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="d-flex flex-wrap gap-3 align-items-center">
+      {{ logo(a.company) }}
+      <div class="flex-grow-1"><h5 class="fw-bold mb-0"><a class="text-reset" href="{{ url_for('drives.detail', did=a.drive_id) }}">{{ a.company }}</a></h5>
+        <div class="text-muted small">{{ a.job_role }} · ₹{{ a.ctc_lpa }} LPA · Applied {{ a.applied_at|d }}</div></div>
+      {{ badge(a.status) }}
+      {% if a.status in ('APPLIED', 'SHORTLISTED') %}<form method="post" action="{{ url_for('drives.withdraw', aid=a.id) }}" data-confirm="Withdraw this application?"><button class="btn btn-sm btn-outline-danger">Withdraw</button></form>{% endif %}
+    </div>
+    {{ app_stepper(a.status) }}
+    {% if a.remarks %}<div class="small text-muted"><i class="bi bi-chat-left-text me-1"></i>{{ a.remarks }}</div>{% endif %}
+    {% if hist.get(a.id) %}
+    <details class="small mt-2"><summary class="text-primary">Timeline ({{ hist[a.id]|length }})</summary>
+      <ul class="list-clean mt-2">{% for h in hist[a.id] %}<li><strong>{{ h.status|label }}</strong> · {{ h.changed_at|dt }}{% if h.note %} — <span class="text-muted">{{ h.note }}</span>{% endif %}</li>{% endfor %}</ul></details>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="card">{{ empty('kanban', 'You have not applied to any drive yet.') }}</div>
+{% endfor %}
+{% endblock %}

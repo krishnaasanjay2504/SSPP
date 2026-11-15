@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty with context %}
+{% block title %}Approvals{% endblock %}
+{% macro actions(kind, oid) -%}
+<div class="d-flex gap-1 justify-content-end">
+  <form method="post" action="{{ url_for('admin.decide', kind=kind, oid=oid, decision='reject') }}" data-confirm="Reject?"><button class="btn btn-sm btn-outline-danger">Reject</button></form>
+  <form method="post" action="{{ url_for('admin.decide', kind=kind, oid=oid, decision='approve') }}"><button class="btn btn-sm btn-success">Approve</button></form>
+</div>
+{%- endmacro %}
+{% block content %}
+<div class="page-head"><div><h1>Approval workflow</h1><p>New recruiters, companies, drives and off-campus postings become visible to students only after TPO approval.</p></div></div>
+<div class="row g-4">
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header"><i class="bi bi-person-plus me-1"></i>Accounts ({{ users|length }})</div>
+    <ul class="list-clean px-3">{% for u in users %}<li class="d-flex justify-content-between align-items-center"><div><strong>{{ u.full_name }}</strong> <span class="chip gray">{{ ROLE_LABELS[u.user_role] }}</span><div class="small text-muted">{{ u.email }}{% if u.company %} · {{ u.company }}{% endif %}{% if u.designation %} · {{ u.designation }}{% endif %}</div></div>{{ actions('user', u.id) }}</li>{% else %}<li>{{ empty('check2-all', 'Nothing pending.') }}</li>{% endfor %}</ul></div></div>
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header"><i class="bi bi-buildings me-1"></i>Companies ({{ companies|length }})</div>
+    <ul class="list-clean px-3">{% for c in companies %}<li class="d-flex justify-content-between align-items-center"><div><strong>{{ c.name }}</strong><div class="small text-muted">{{ c.website or '' }} · by {{ c.full_name or '—' }}</div></div>{{ actions('company', c.id) }}</li>{% else %}<li>{{ empty('check2-all', 'Nothing pending.') }}</li>{% endfor %}</ul></div></div>
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header"><i class="bi bi-building me-1"></i>Placement drives ({{ drives|length }})</div>
+    <ul class="list-clean px-3">{% for d in drives %}<li class="d-flex justify-content-between align-items-center"><div><a class="fw-semibold" href="{{ url_for('drives.manage', did=d.id) }}">{{ d.company }} – {{ d.job_role }}</a><div class="small text-muted">₹{{ d.ctc_lpa }} LPA · CGPA ≥ {{ d.min_cgpa }} · {{ d.branches }} · by {{ d.full_name }}</div></div>{{ actions('drive', d.id) }}</li>{% else %}<li>{{ empty('check2-all', 'Nothing pending.') }}</li>{% endfor %}</ul></div></div>
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header"><i class="bi bi-globe2 me-1"></i>Off-campus postings ({{ jobs|length }})</div>
+    <ul class="list-clean px-3">{% for j in jobs %}<li class="d-flex justify-content-between align-items-center"><div><a class="fw-semibold" href="{{ url_for('jobs.detail', jid=j.id) }}">{{ j.company }} – {{ j.job_role }}</a><div class="small text-muted">{{ j.source }} · by {{ j.full_name }}{% if j.apply_url %} · <a href="{{ j.apply_url }}" target="_blank" rel="noopener">link</a>{% endif %}</div></div>{{ actions('job', j.id) }}</li>{% else %}<li>{{ empty('check2-all', 'Nothing pending.') }}</li>{% endfor %}</ul></div></div>
+</div>
+{% endblock %}

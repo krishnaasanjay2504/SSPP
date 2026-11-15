@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Runtime output
+logs/
+uploads/*
+!uploads/.gitkeep
+
+# Editor / tools
+.vscode/
+.idea/
+.claude/

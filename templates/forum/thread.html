@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ q.title }}{% endblock %}
+{% macro votebox(tt, tid, n) -%}
+<div class="vote-box">
+  <form method="post" action="{{ url_for('forum.vote') }}"><input type="hidden" name="qid" value="{{ q.id }}"><input type="hidden" name="target_type" value="{{ tt }}"><input type="hidden" name="target_id" value="{{ tid }}"><input type="hidden" name="value" value="1"><button class="{{ 'on' if my_votes.get((tt, tid)) == 1 }}" title="Useful"><i class="bi bi-caret-up-fill"></i></button></form>
+  <div class="n">{{ n }}</div>
+  <form method="post" action="{{ url_for('forum.vote') }}"><input type="hidden" name="qid" value="{{ q.id }}"><input type="hidden" name="target_type" value="{{ tt }}"><input type="hidden" name="target_id" value="{{ tid }}"><input type="hidden" name="value" value="-1"><button class="{{ 'on' if my_votes.get((tt, tid)) == -1 }}" title="Not useful"><i class="bi bi-caret-down-fill"></i></button></form>
+</div>
+{%- endmacro %}
+{% macro comment_block(tt, tid) -%}
+<div class="mt-2 ms-1">
+  {% for c in comments.get((tt, tid), []) %}<div class="small border-top py-1">{{ c.body }} — <span class="text-primary">{{ c.full_name }}</span> <span class="text-muted">{{ c.created_at|ago }}</span></div>{% endfor %}
+  <form method="post" action="{{ url_for('forum.comment') }}" class="d-flex gap-2 mt-1"><input type="hidden" name="qid" value="{{ q.id }}"><input type="hidden" name="target_type" value="{{ tt }}"><input type="hidden" name="target_id" value="{{ tid }}">
+    <input class="form-control form-control-sm" name="body" placeholder="Add a comment" required><button class="btn btn-sm btn-outline-secondary">Comment</button></form>
+</div>
+{%- endmacro %}
+{% block content %}
+<a href="{{ url_for('forum.index') }}" class="small"><i class="bi bi-arrow-left"></i> All questions</a>
+<div class="row g-4 mt-1">
+  <div class="col-xl-9">
+    <div class="card p-4 mb-4">
+      <div class="d-flex justify-content-between gap-2"><h3 class="fw-bold">{{ q.title }}</h3>
+        <form method="post" action="{{ url_for('forum.bookmark', qid=q.id) }}"><button class="btn btn-icon" title="Bookmark"><i class="bi bi-bookmark{{ '-fill text-primary' if bookmarked }}"></i></button></form></div>
+      <div class="small text-muted mb-3">Asked {{ q.created_at|ago }} by {{ q.full_name }} · {{ q.views }} views</div>
+      <div class="d-flex gap-3">
+        {{ votebox('Q', q.id, q.votes) }}
+        <div class="flex-grow-1">{{ q.body|md }}
+          <div>{% for t in q.tags|csv %}<a class="chip" href="{{ url_for('forum.index', tag=t) }}">{{ t }}</a>{% endfor %}</div>
+          {{ comment_block('Q', q.id) }}</div>
+      </div>
+    </div>
+    <h5 class="fw-bold mb-3">{{ answers|length }} Answer{{ 's' if answers|length != 1 }}</h5>
+    {% for a in answers %}
+    <div class="card p-4 mb-3 answer {{ 'accepted' if a.id == q.accepted_answer_id }} {{ 'verified' if a.is_verified }}" id="a{{ a.id }}">
+      <div class="d-flex gap-3">
+        <div class="text-center">{{ votebox('A', a.id, a.votes) }}
+          {% if a.id == q.accepted_answer_id %}<i class="bi bi-check-circle-fill text-success fs-4" title="Accepted answer"></i>{% endif %}</div>
+        <div class="flex-grow-1">
+          <div class="d-flex flex-wrap gap-1 mb-2">
+            {% if a.id == q.accepted_answer_id %}<span class="chip green"><i class="bi bi-check2"></i>Accepted</span>{% endif %}
+            {% if a.is_verified %}<span class="chip green"><i class="bi bi-patch-check-fill"></i>Verified Answer</span>{% endif %}</div>
+          {{ a.body|md }}
+          <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+            <span class="small text-muted">— {{ a.full_name }} <span class="chip gray">{{ ROLE_LABELS[a.user_role] }}</span> {{ a.created_at|ago }}</span>
+            {% if g.user.id == q.user_id and a.id != q.accepted_answer_id %}<form method="post" action="{{ url_for('forum.accept', aid=a.id) }}"><button class="btn btn-sm btn-outline-success">Accept answer</button></form>{% endif %}
+            {% if has_role('FACULTY','TPO','ADMIN') %}<form method="post" action="{{ url_for('forum.verify', aid=a.id) }}"><button class="btn btn-sm btn-outline-primary">{{ 'Remove verification' if a.is_verified else 'Mark as Verified' }}</button></form>{% endif %}
+          </div>
+          {{ comment_block('A', a.id) }}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    <div class="card p-4"><h6 class="fw-bold">Your answer</h6>
+      <form method="post" action="{{ url_for('forum.answer', qid=q.id) }}"><textarea class="form-control mb-2" rows="6" name="body" required placeholder="Markdown supported"></textarea>
+        {% if has_role('FACULTY','TPO') %}<div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="verify" id="vf" checked><label class="form-check-label small" for="vf">Post as Verified Answer</label></div>{% endif %}
+        <button class="btn btn-primary">Post answer</button></form></div>
+  </div>
+  <div class="col-xl-3"><div class="card"><div class="card-header">Related questions</div>
+    <ul class="list-clean px-3 small">{% for r in related %}<li><a href="{{ url_for('forum.thread', qid=r.id) }}">{{ r.title }}</a></li>{% else %}<li class="text-muted">None yet.</li>{% endfor %}</ul></div></div>
+</div>
+{% endblock %}

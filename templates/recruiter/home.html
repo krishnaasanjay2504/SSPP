@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, logo, stat, empty with context %}
+{% block title %}Recruiter Portal{% endblock %}
+{% block content %}
+{% if not company %}
+<div class="card p-5 text-center"><i class="bi bi-buildings fs-1 text-primary"></i><h3 class="fw-bold mt-2">Register your company</h3><p class="text-muted">Create your company profile to start hiring from campus. The TPO approves new companies.</p>
+  <a class="btn btn-gradient mx-auto" href="{{ url_for('recruiter.company') }}">Register company</a></div>
+{% else %}
+<div class="page-head"><div class="d-flex gap-3 align-items-center">{{ logo(company.name) }}<div><h1>{{ company.name }}</h1><p>{{ company.industry or '' }} · {{ badge(company.status) }}</p></div></div>
+  <a class="btn btn-gradient" href="{{ url_for('drives.new_drive') }}"><i class="bi bi-plus-lg me-1"></i>Create drive</a></div>
+{% if company.status == 'PENDING' %}<div class="alert alert-warning">Your company registration is awaiting TPO approval. You can prepare drives meanwhile.</div>{% endif %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">{{ stat('briefcase', drives|length, 'Drives') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('people', funnel.values()|sum, 'Applicants', 'sky') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('trophy', funnel.get('SELECTED', 0), 'Selected', 'green') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('envelope-paper', offers, 'Offers issued', 'violet') }}</div>
+</div>
+<div class="card"><div class="card-header">Your drives</div><div class="table-responsive"><table class="table align-middle mb-0">
+  <thead><tr><th>Role</th><th>CTC</th><th>Deadline</th><th>Status</th><th>Applicants</th><th>Selected</th><th></th></tr></thead><tbody>
+  {% for d in drives %}<tr><td class="fw-semibold">{{ d.job_role }}</td><td>₹{{ d.ctc_lpa }} LPA</td><td class="small">{{ d.reg_deadline|dt }}</td><td>{{ badge(d.status) }}</td><td>{{ d.applicants }}</td><td>{{ d.selected }}</td>
+    <td class="text-end"><a class="btn btn-sm btn-primary" href="{{ url_for('drives.manage', did=d.id) }}">Manage candidates</a></td></tr>
+  {% else %}<tr><td colspan="7">{{ empty('briefcase', 'No drives yet.') }}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endif %}
+{% endblock %}

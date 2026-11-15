@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, logo, empty with context %}
+{% block title %}Campus Drives{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Campus Placement Drives</h1><p>Official college drives. Eligibility is checked automatically against your academic record.</p></div>
+  {% if has_role('TPO','ADMIN','RECRUITER') %}<a class="btn btn-gradient" href="{{ url_for('drives.new_drive') }}"><i class="bi bi-plus-lg me-1"></i>New drive</a>{% endif %}
+</div>
+<ul class="nav nav-pills mb-3">
+  <li class="nav-item"><a class="nav-link {{ 'active' if tab=='open' and not only }}" href="{{ url_for('drives.index') }}">Open drives</a></li>
+  {% if student %}<li class="nav-item"><a class="nav-link {{ 'active' if only=='eligible' }}" href="{{ url_for('drives.index', only='eligible') }}">Eligible for me</a></li>{% endif %}
+  <li class="nav-item"><a class="nav-link {{ 'active' if tab=='past' }}" href="{{ url_for('drives.index', tab='past') }}">Past drives</a></li>
+</ul>
+<div class="row g-4">
+{% for d in drives %}
+  <div class="col-md-6 col-xxl-4">
+    <div class="card drive-card h-100">
+      <div class="card-body">
+        <div class="d-flex gap-3 mb-3">{{ logo(d.company) }}
+          <div class="flex-grow-1"><h5 class="fw-bold mb-0">{{ d.company }}</h5><div class="text-muted">{{ d.job_role }}</div></div>
+          {% if d.elig %}{% if d.elig.ok %}<span class="chip green h-100"><i class="bi bi-check-circle"></i>Eligible</span>{% else %}<span class="chip red h-100" data-bs-toggle="tooltip" title="{{ d.elig.reasons|join('; ') }}"><i class="bi bi-x-circle"></i>Not eligible</span>{% endif %}{% endif %}
+        </div>
+        <dl class="kv small mb-3">
+          <dt>CTC</dt><dd class="fw-bold text-success">₹{{ d.ctc_lpa }} LPA</dd>
+          <dt>Eligibility</dt><dd>CGPA ≥ {{ d.min_cgpa }}{% if d.max_active_backlogs == 0 %} · No active backlogs{% endif %}</dd>
+          <dt>Branches</dt><dd>{{ (d.branches or 'All')|replace(',', ' / ') }}</dd>
+          <dt>Location</dt><dd>{{ (d.locations or '—')|replace(',', ' / ') }}</dd>
+          <dt>Register by</dt><dd>{{ d.reg_deadline|dt }}</dd>
+          <dt>Drive date</dt><dd>{{ d.drive_date|d }}</dd>
+        </dl>
+        <div class="pipeline small">{% for rnd in d.rounds|csv %}<span class="p">{{ rnd }}</span>{% if not loop.last %}<i class="bi bi-chevron-right arrow"></i>{% endif %}{% endfor %}</div>
+      </div>
+      <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+        {% if d.id in applied %}{{ badge(applied[d.id]) }}{% else %}<span class="small text-muted">{{ d.job_type|label }}</span>{% endif %}
+        <a class="btn btn-sm btn-primary" href="{{ url_for('drives.detail', did=d.id) }}">View details</a>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="col-12"><div class="card">{{ empty('building', 'No drives to show.') }}</div></div>
+{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, ring, empty with context %}
+{% block title %}Coding Practice{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Coding Practice</h1><p>Programming problems by difficulty with test cases, instant execution, scoring and solutions.</p></div>
+  <div class="d-flex gap-3 align-items-center">{{ ring(pct, '#4f46e5', true) }}<div><div class="fw-bold">{{ solved }} / {{ total }} solved</div><div class="small text-muted">{{ score or 0 }} points</div></div></div></div>
+<div class="row g-4">
+  <div class="col-xl-8">
+    <ul class="nav nav-pills mb-3">
+      <li class="nav-item"><a class="nav-link {{ 'active' if not diff }}" href="{{ url_for('learn.coding') }}">All</a></li>
+      {% for d in ['EASY','MEDIUM','HARD'] %}<li class="nav-item"><a class="nav-link {{ 'active' if diff==d }}" href="{{ url_for('learn.coding', difficulty=d) }}">{{ d|title }}</a></li>{% endfor %}
+    </ul>
+    <div class="card"><div class="table-responsive"><table class="table align-middle mb-0">
+      <thead><tr><th style="width:40px"></th><th>Problem</th><th>Topic</th><th>Difficulty</th><th>Points</th><th></th></tr></thead><tbody>
+      {% for p in probs %}<tr><td>{% if p.solved %}<i class="bi bi-check-circle-fill text-success fs-5"></i>{% elif p.tries %}<i class="bi bi-dash-circle text-warning fs-5"></i>{% else %}<i class="bi bi-circle text-muted fs-5"></i>{% endif %}</td>
+        <td class="fw-semibold"><a class="text-reset" href="{{ url_for('learn.problem', pid=p.id) }}">{{ p.title }}</a></td><td><span class="chip gray">{{ p.topic }}</span></td><td>{{ badge(p.difficulty) }}</td><td>{{ p.points }}</td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('learn.problem', pid=p.id) }}">{{ 'Solved' if p.solved else 'Solve' }}</a></td></tr>
+      {% else %}<tr><td colspan="6">{{ empty('code-slash', 'No problems yet.') }}</td></tr>{% endfor %}
+      </tbody></table></div></div>
+  </div>
+  <div class="col-xl-4"><div class="card"><div class="card-header"><i class="bi bi-trophy me-1 text-warning"></i>Leaderboard</div>
+    <ul class="list-clean px-3">{% for b in board %}<li class="d-flex justify-content-between"><span><strong class="me-2">#{{ loop.index }}</strong>{{ b.full_name }}</span><span class="small">{{ b.pts }} pts · {{ b.solved }} solved</span></li>{% else %}<li class="small text-muted">Be the first to solve a problem!</li>{% endfor %}</ul></div></div>
+</div>
+{% endblock %}

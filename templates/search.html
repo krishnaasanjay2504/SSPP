@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Search results</h1><p>{% if q %}for “{{ q }}”{% else %}Type in the search bar above{% endif %}</p></div></div>
+<div class="row g-3">
+{% for section, items in res.items() if items %}
+  <div class="col-md-6"><div class="card h-100"><div class="card-header">{{ section }} <span class="badge text-bg-light">{{ items|length }}</span></div>
+    <ul class="list-clean px-3">{% for t, link in items %}<li><a href="{{ link }}">{{ t }}</a></li>{% endfor %}</ul></div></div>
+{% else %}
+  {% from "_macros.html" import empty %}<div class="col-12"><div class="card">{{ empty('search', 'No results found.') }}</div></div>
+{% endfor %}
+</div>
+{% endblock %}

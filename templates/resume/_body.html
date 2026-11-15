@@ -1,0 +1,42 @@
+{# Shared resume body used by both the browser preview and the PDF renderer (xhtml2pdf-friendly markup). #}
+<table width="100%" cellpadding="0" cellspacing="0" class="rhead">
+  <tr><td>
+    <div class="rname">{{ s.full_name }}</div>
+    {% if r.target_role %}<div class="rrole">{{ r.target_role }}</div>{% endif %}
+    <div class="rcontact">{{ s.email }}{% if s.phone %} &nbsp;|&nbsp; {{ s.phone }}{% endif %}{% if s.address %} &nbsp;|&nbsp; {{ s.address }}{% endif %}</div>
+    {% if 'LINKS' in sections %}
+    <div class="rcontact">
+      {% for k in ['github','linkedin','leetcode','hackerrank','portfolio'] if s.get(k) %}{{ k|title }}: {{ s[k] }}{% if not loop.last %} &nbsp;|&nbsp; {% endif %}{% endfor %}
+    </div>
+    {% endif %}
+  </td></tr>
+</table>
+
+{% for sec in sections %}
+  {% if sec == 'SUMMARY' and r.objective %}
+    <div class="rsec">Career Objective</div><p class="rtext">{{ r.objective }}</p>
+  {% elif sec == 'SKILL' and items.get('SKILL') %}
+    <div class="rsec">Technical Skills</div>
+    <p class="rtext">{% for i in items['SKILL'] %}<b>{{ i.title }}</b>{% if i.item_level %} ({{ i.item_level }}){% endif %}{% if not loop.last %} &nbsp;•&nbsp; {% endif %}{% endfor %}</p>
+  {% elif sec == 'LANGUAGE' and items.get('LANGUAGE') %}
+    <div class="rsec">Languages</div>
+    <p class="rtext">{% for i in items['LANGUAGE'] %}{{ i.title }}{% if i.item_level %} ({{ i.item_level }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+  {% elif sec == 'EDUCATION' and (items.get('EDUCATION') or s.cgpa) %}
+    <div class="rsec">Education</div>
+    {% for i in items.get('EDUCATION', []) %}
+    <table width="100%" class="ritem"><tr><td><b>{{ i.title }}</b>{% if i.org %}, {{ i.org }}{% endif %}{% if i.score %} — {{ i.score }}{% endif %}</td>
+      <td align="right" class="rdate">{{ i.start_label or '' }}{% if i.end_label %} – {{ i.end_label }}{% endif %}</td></tr></table>
+    {% endfor %}
+    {% if s.tenth_pct or s.twelfth_pct %}<p class="rtext small">{% if s.twelfth_pct %}Class XII: {{ s.twelfth_pct }}%{% endif %}{% if s.tenth_pct %} &nbsp;|&nbsp; Class X: {{ s.tenth_pct }}%{% endif %}</p>{% endif %}
+  {% elif sec in items and items[sec] and sec not in ('SKILL','LANGUAGE','EDUCATION') %}
+    <div class="rsec">{{ labels[sec] }}</div>
+    {% for i in items[sec] %}
+    <table width="100%" class="ritem"><tr>
+      <td><b>{{ i.title }}</b>{% if i.org %} — {{ i.org }}{% endif %}{% if i.score %} ({{ i.score }}){% endif %}</td>
+      <td align="right" class="rdate">{{ i.start_label or '' }}{% if i.end_label %} – {{ i.end_label }}{% endif %}</td></tr></table>
+    {% if i.tech %}<div class="rtext small"><i>Tech: {{ i.tech }}</i></div>{% endif %}
+    {% if i.description %}<div class="rtext">{{ i.description|nl2br }}</div>{% endif %}
+    {% if i.url %}<div class="rtext small">{{ i.url }}</div>{% endif %}
+    {% endfor %}
+  {% endif %}
+{% endfor %}

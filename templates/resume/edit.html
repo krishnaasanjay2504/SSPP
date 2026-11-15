@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, meter with context %}
+{% block title %}Edit {{ r.title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><a href="{{ url_for('resume.index') }}" class="small"><i class="bi bi-arrow-left"></i> All resumes</a><h1>{{ r.title }}</h1><p>Section-wise editing. Content comes from <a href="{{ url_for('profile.view', tab='items') }}">your profile</a> — update it there.</p></div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{{ url_for('resume.preview', rid=r.id) }}" target="_blank"><i class="bi bi-eye me-1"></i>Preview</a>
+    <a class="btn btn-gradient" href="{{ url_for('resume.pdf', rid=r.id, download=1) }}"><i class="bi bi-filetype-pdf me-1"></i>Export PDF</a>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-xl-8">
+    <form method="post" class="card">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-5"><label class="form-label">Resume name</label><input class="form-control" name="title" value="{{ r.title }}"></div>
+          <div class="col-md-4"><label class="form-label">Target role</label><input class="form-control" name="target_role" value="{{ r.target_role or '' }}"></div>
+          <div class="col-md-3"><label class="form-label">Template</label><select class="form-select" name="template_code">{% for k, (n, c) in templates.items() %}<option value="{{ k }}" {{ 'selected' if r.template_code==k }}>{{ n }}</option>{% endfor %}</select></div>
+          <div class="col-12"><label class="form-label">Career objective / professional summary</label><textarea class="form-control" rows="3" name="objective">{{ r.objective or '' }}</textarea></div>
+        </div>
+        <hr>
+        <h6 class="fw-bold mb-2">Sections to include <span class="text-muted fw-normal small">(order is fixed by template)</span></h6>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          {% for k, l in sections %}
+          <input type="checkbox" class="btn-check" name="sections" value="{{ k }}" id="s{{k}}" {{ 'checked' if k in active }}>
+          <label class="btn btn-sm btn-outline-primary" for="s{{k}}">{{ l }}</label>
+          {% endfor %}
+        </div>
+        <h6 class="fw-bold mb-2">Entries <span class="text-muted fw-normal small">— untick items you don't want on this version</span></h6>
+        <div class="row g-3">
+        {% for k, l in sections if k in items %}
+          <div class="col-md-6"><div class="border rounded-3 p-2 h-100">
+            <div class="small fw-bold text-uppercase text-muted mb-1">{{ l }}</div>
+            {% for i in items[k] %}
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="include_item" value="{{ i.id }}" id="i{{ i.id }}" {{ 'checked' if i.id not in excluded }}>
+              <label class="form-check-label small" for="i{{ i.id }}">{{ i.title }}{% if i.org %} <span class="text-muted">· {{ i.org }}</span>{% endif %}</label></div>
+            {% endfor %}
+          </div></div>
+        {% endfor %}
+        </div>
+      </div>
+      <div class="card-footer bg-transparent"><button class="btn btn-primary"><i class="bi bi-save me-1"></i>Save resume</button></div>
+    </form>
+  </div>
+  <div class="col-xl-4">
+    <div class="card mb-4"><div class="card-body d-flex gap-3 align-items-center">
+      {{ ring(score, '#16a34a' if score >= 80 else '#f59e0b') }}
+      <div><div class="fw-bold">Resume completeness</div><div class="small text-muted">Based on content quality & coverage</div></div></div>
+      {% if tips %}<ul class="small mb-3 me-3">{% for t in tips %}<li>{{ t }}</li>{% endfor %}</ul>{% endif %}
+    </div>
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-lightbulb me-1 text-warning"></i>Skill recommendations · {{ gap.goal }}</div>
+      <div class="card-body">
+        <div class="small mb-2">Role match {{ gap.readiness }}%</div>{{ meter(gap.readiness) }}
+        <div class="mt-3 small fw-semibold">You have</div>
+        {% for s in gap.matched %}<span class="chip green">{{ s|title }}</span>{% else %}<span class="small text-muted">—</span>{% endfor %}
+        <div class="mt-2 small fw-semibold">Consider adding / learning</div>
+        {% for s in gap.missing %}<span class="chip amber">{{ s|title }}</span>{% else %}<span class="small text-muted">Nothing missing 🎉</span>{% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><i class="bi bi-kanban me-1"></i>Project ideas for this role</div>
+      <ul class="list-clean px-3 small">{% for p in project_ideas %}<li>{{ p }}</li>{% endfor %}</ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

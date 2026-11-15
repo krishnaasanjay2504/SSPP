@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block public %}
+<div class="landing-hero min-vh-100">
+  <nav class="container d-flex align-items-center py-3">
+    <a href="/" class="d-flex align-items-center gap-2 text-decoration-none text-reset"><span class="brand-logo text-white"><i class="bi bi-mortarboard-fill"></i></span><strong class="fs-5">SSPP</strong></a>
+    <div class="ms-auto d-flex gap-2"><a class="btn btn-outline-primary" href="{{ url_for('auth.login') }}">Sign in</a><a class="btn btn-gradient" href="{{ url_for('auth.register') }}">Get started</a></div>
+  </nav>
+  <div class="container py-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <span class="chip mb-3"><i class="bi bi-stars"></i> Career readiness · Campus recruitment · Off-campus</span>
+        <h1 class="display-4 fw-bold mb-3">Smart Student <span style="background:linear-gradient(90deg,#4f46e5,#db2777);-webkit-background-clip:text;color:transparent">Placement Portal</span></h1>
+        <p class="lead text-muted mb-4">One platform for students, placement officers, faculty, recruiters and alumni — from building a resume to accepting an offer.</p>
+        <div class="d-flex gap-2"><a class="btn btn-gradient btn-lg" href="{{ url_for('auth.login') }}">Sign in to portal</a><a class="btn btn-outline-secondary btn-lg" href="{{ url_for('auth.register') }}">Register</a></div>
+        <div class="row g-3 mt-4">
+          <div class="col-3"><div class="fw-bold fs-3">{{ stats.students }}</div><div class="text-muted small">Students</div></div>
+          <div class="col-3"><div class="fw-bold fs-3">{{ stats.companies }}</div><div class="text-muted small">Recruiters</div></div>
+          <div class="col-3"><div class="fw-bold fs-3">{{ stats.offers }}</div><div class="text-muted small">Offers</div></div>
+          <div class="col-3"><div class="fw-bold fs-3">₹{{ stats.highest or 0 }}L</div><div class="text-muted small">Highest CTC</div></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="row g-3">
+          {% for ic, t, d in [('person-badge','Profile & Resume','Multiple templates, PDF export, AI JD matching'),('building','Campus Drives','Auto eligibility, registration and tracking'),('calendar3','Placement Calendar','Tests, interviews & deadlines with reminders'),('signpost-split','Skill Builder','Learning paths with badges and certificates'),('ui-checks','Assessments','Quizzes with detailed explanations'),('code-slash','Coding Practice','Run code against test cases'),('mic','Mock Interviews','AI feedback on your answers'),('bar-chart-line','Analytics','Department, company & CTC insights')] %}
+          <div class="col-sm-6"><div class="card feature-card"><i class="bi bi-{{ ic }} text-primary"></i><h6 class="fw-bold mt-2 mb-1">{{ t }}</h6><div class="small text-muted">{{ d }}</div></div></div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

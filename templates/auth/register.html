@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block public %}
+<div class="auth-wrap">
+  <div class="auth-side">
+    <div style="position:relative;z-index:1">
+      <h1 class="display-6 fw-bold mb-3">Join the Smart Student Placement Portal</h1>
+      <p class="opacity-75">Students get instant access. Recruiter and alumni accounts are verified by the Training & Placement Officer before activation.</p>
+    </div>
+  </div>
+  <div class="auth-form">
+    <div class="inner" style="max-width:520px">
+      <h2 class="fw-bold mb-3">Create account</h2>
+      {% with msgs = get_flashed_messages(with_categories=true) %}{% for c, m in msgs %}<div class="alert alert-{{ c }}">{{ m }}</div>{% endfor %}{% endwith %}
+      <form method="post" id="regForm">
+        <div class="btn-group w-100 mb-3" role="group">
+          {% for k, v in roles.items() %}
+          <input type="radio" class="btn-check" name="role" id="r{{k}}" value="{{k}}" {{ 'checked' if loop.first }}>
+          <label class="btn btn-outline-primary" for="r{{k}}">{{ v }}</label>
+          {% endfor %}
+        </div>
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label">Full name</label><input class="form-control" name="full_name" required></div>
+          <div class="col-md-7"><label class="form-label">Email</label><input class="form-control" type="email" name="email" required></div>
+          <div class="col-md-5"><label class="form-label">Phone</label><input class="form-control" name="phone"></div>
+          <div class="col-md-4 only-STUDENT"><label class="form-label">Register no.</label><input class="form-control" name="reg_no"></div>
+          <div class="col-md-4 only-STUDENT"><label class="form-label">Department</label><select class="form-select" name="department">{% for d in DEPARTMENTS %}<option>{{ d }}</option>{% endfor %}</select></div>
+          <div class="col-md-4 only-STUDENT"><label class="form-label">Batch (pass-out)</label><input class="form-control" name="batch_year" type="number" value="{{ now.year + 1 }}"></div>
+          <div class="col-md-6 only-RECRUITER d-none"><label class="form-label">Company</label><input class="form-control" name="company"></div>
+          <div class="col-md-6 only-RECRUITER d-none"><label class="form-label">Company website</label><input class="form-control" name="website"></div>
+          <div class="col-12 only-RECRUITER only-ALUMNI d-none"><label class="form-label">Designation / current role</label><input class="form-control" name="designation"></div>
+          <div class="col-md-6"><label class="form-label">Password</label><input class="form-control" type="password" name="password" minlength="8" required></div>
+          <div class="col-md-6"><label class="form-label">Confirm password</label><input class="form-control" type="password" name="confirm" minlength="8" required></div>
+        </div>
+        <button class="btn btn-gradient btn-lg w-100 mt-4">Register</button>
+      </form>
+      <p class="text-center text-muted mt-3">Already registered? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', () => {
+  const v = document.querySelector('input[name=role]:checked').value;
+  document.querySelectorAll('[class*="only-"]').forEach(el => el.classList.toggle('d-none', !el.classList.contains('only-' + v)));
+}));
+</script>
+{% endblock %}

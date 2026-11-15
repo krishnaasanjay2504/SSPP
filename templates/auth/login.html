@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block public %}
+<div class="auth-wrap">
+  <div class="auth-side">
+    <div style="position:relative;z-index:1">
+      <div class="d-flex align-items-center gap-2 mb-4"><span class="brand-logo"><i class="bi bi-mortarboard-fill"></i></span><h4 class="m-0 fw-bold">SSPP</h4></div>
+      <h1 class="display-6 fw-bold mb-3">Your complete career-readiness & placement platform</h1>
+      <p class="opacity-75 mb-4">{{ INSTITUTION }} — campus drives, off-campus opportunities, skill building, assessments and AI-powered guidance in one place.</p>
+      <div class="feature"><i class="bi bi-shield-check"></i><div><strong>Automatic eligibility</strong><div class="opacity-75 small">See exactly which drives you qualify for and why.</div></div></div>
+      <div class="feature"><i class="bi bi-file-earmark-person"></i><div><strong>Resume builder + AI assistant</strong><div class="opacity-75 small">Role-specific resumes, PDF export and JD matching.</div></div></div>
+      <div class="feature"><i class="bi bi-graph-up-arrow"></i><div><strong>Readiness dashboard</strong><div class="opacity-75 small">Aptitude, coding, interview and skill scores at a glance.</div></div></div>
+    </div>
+  </div>
+  <div class="auth-form">
+    <div class="inner">
+      <h2 class="fw-bold mb-1">Welcome back 👋</h2>
+      <p class="text-muted mb-4">Sign in to continue to your portal</p>
+      {% with msgs = get_flashed_messages(with_categories=true) %}{% for c, m in msgs %}<div class="alert alert-{{ c }}">{{ m }}</div>{% endfor %}{% endwith %}
+      <form method="post">
+        <div class="mb-3"><label class="form-label">Email</label><input class="form-control form-control-lg" type="email" name="email" required autofocus></div>
+        <div class="mb-3"><label class="form-label">Password</label><input class="form-control form-control-lg" type="password" name="password" required></div>
+        <button class="btn btn-gradient btn-lg w-100 mb-3">Sign in</button>
+      </form>
+      <p class="text-center text-muted">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+      <div class="card p-3 mt-4 small">
+        <div class="fw-semibold mb-2"><i class="bi bi-info-circle me-1"></i>Demo accounts</div>
+        <table class="table table-sm mb-0 small">
+          <tr><td>Student</td><td><code>student@sspp.edu</code></td><td><code>Student@123</code></td></tr>
+          <tr><td>TPO</td><td><code>tpo@sspp.edu</code></td><td><code>Tpo@12345</code></td></tr>
+          <tr><td>Faculty</td><td><code>faculty@sspp.edu</code></td><td><code>Faculty@123</code></td></tr>
+          <tr><td>Recruiter</td><td><code>hr@cognizant.com</code></td><td><code>Recruit@123</code></td></tr>
+          <tr><td>Alumni</td><td><code>alumni@sspp.edu</code></td><td><code>Alumni@123</code></td></tr>
+          <tr><td>Admin</td><td><code>admin@sspp.edu</code></td><td><code>Admin@123</code></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Dashboard{% endblock %} · SSPP</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='4' fill='%234f46e5'/><text x='8' y='12' font-size='10' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>S</text></svg>">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+  <script>try{const t=localStorage.getItem('sspp-theme');if(t)document.documentElement.setAttribute('data-bs-theme',t);}catch(e){}</script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+{% if g.user %}
+{% set role = g.user.user_role %}
+{% macro nav(endpoint, icon, label, args={}) -%}
+  {% set active = request.endpoint == endpoint %}
+  <a class="nav-link {{ 'active' if active }}" href="{{ url_for(endpoint, **args) }}"><i class="bi bi-{{ icon }}"></i><span>{{ label }}</span></a>
+{%- endmacro %}
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a href="{{ url_for('main.dashboard') }}" class="brand">
+      <span class="brand-logo"><i class="bi bi-mortarboard-fill"></i></span>
+      <span><strong>SSPP</strong><small>Smart Placement Portal</small></span>
+    </a>
+    <nav class="nav flex-column">
+      {{ nav('main.dashboard', 'grid-1x2', 'Dashboard') }}
+      {% if role == 'STUDENT' %}
+        <div class="nav-section">Profile & Resume</div>
+        {{ nav('profile.view', 'person-badge', 'My Profile') }}
+        {{ nav('resume.index', 'file-earmark-person', 'Resume Builder') }}
+        {{ nav('assistant.resume_assistant', 'magic', 'AI Resume Assistant') }}
+        <div class="nav-section">Placements</div>
+        {{ nav('drives.index', 'building', 'Campus Drives') }}
+        {{ nav('drives.applications', 'kanban', 'My Applications') }}
+        {{ nav('drives.offers', 'award', 'Offers') }}
+        {{ nav('jobs.index', 'globe2', 'Off-Campus Jobs') }}
+        {{ nav('calendar.view', 'calendar3', 'Placement Calendar') }}
+        <div class="nav-section">Prepare</div>
+        {{ nav('learn.skills', 'signpost-split', 'Skill Builder') }}
+        {{ nav('learn.quizzes', 'ui-checks', 'Quizzes & Tests') }}
+        {{ nav('learn.aptitude', 'calculator', 'Aptitude Prep') }}
+        {{ nav('learn.coding', 'code-slash', 'Coding Practice') }}
+        {{ nav('learn.interview_bank', 'mic', 'Interview Prep') }}
+        {{ nav('learn.communication', 'chat-quote', 'Communication') }}
+        {{ nav('assistant.career', 'compass', 'AI Career Planner') }}
+      {% elif role in ('TPO', 'ADMIN', 'FACULTY') %}
+        <div class="nav-section">Placement Office</div>
+        {{ nav('admin.students', 'people', 'Students') }}
+        {{ nav('admin.drives', 'building', 'Placement Drives') }}
+        {% if role != 'FACULTY' %}
+        {{ nav('admin.companies', 'buildings', 'Companies') }}
+        {{ nav('admin.approvals', 'patch-check', 'Approvals') }}
+        {% endif %}
+        {{ nav('calendar.view', 'calendar3', 'Calendar') }}
+        {{ nav('calendar.attendance', 'person-check', 'Training Attendance') }}
+        {{ nav('jobs.index', 'globe2', 'Off-Campus Jobs') }}
+        <div class="nav-section">Insights</div>
+        {{ nav('analytics.reports', 'bar-chart-line', 'Reports & Analytics') }}
+        {{ nav('admin.skill_gaps', 'activity', 'Readiness & Skill Gaps') }}
+        <div class="nav-section">Content</div>
+        {{ nav('admin.content', 'collection', 'Learning Content') }}
+        {{ nav('learn.quizzes', 'ui-checks', 'Quizzes') }}
+        {{ nav('learn.interview_bank', 'mic', 'Interview Bank') }}
+        {% if role in ('ADMIN','TPO') %}{{ nav('admin.users', 'shield-lock', 'Users & Roles') }}{% endif %}
+      {% elif role == 'RECRUITER' %}
+        <div class="nav-section">Recruiter</div>
+        {{ nav('recruiter.home', 'briefcase', 'My Drives') }}
+        {{ nav('recruiter.company', 'buildings', 'Company Profile') }}
+        {{ nav('drives.new_drive', 'plus-square', 'Create Drive') }}
+        {{ nav('calendar.view', 'calendar3', 'Schedule') }}
+        {{ nav('jobs.new', 'megaphone', 'Post Opportunity') }}
+      {% elif role == 'ALUMNI' %}
+        <div class="nav-section">Alumni</div>
+        {{ nav('community.mentoring', 'people', 'Mentoring') }}
+        {{ nav('jobs.new', 'megaphone', 'Refer a Job') }}
+        {{ nav('jobs.index', 'globe2', 'Off-Campus Jobs') }}
+      {% endif %}
+      <div class="nav-section">Community</div>
+      {{ nav('forum.index', 'chat-square-text', 'Q&A Forum') }}
+      {% if role != 'ALUMNI' %}{{ nav('community.mentoring', 'person-hearts', 'Alumni Mentoring') }}{% endif %}
+      {{ nav('community.experiences', 'journal-richtext', 'Placement Experiences') }}
+      {{ nav('community.announcements', 'megaphone', 'Announcements') }}
+      {{ nav('community.career_hub', 'mortarboard', 'Higher Studies & Scholarships') }}
+      {% if role == 'STUDENT' %}{{ nav('calendar.attendance', 'person-check', 'Training Attendance') }}{% endif %}
+      {{ nav('community.helpdesk', 'life-preserver', 'Helpdesk') }}
+      {{ nav('community.feedback', 'star', 'Feedback') }}
+    </nav>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="btn btn-icon d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="bi bi-list"></i></button>
+      <form class="search" action="{{ url_for('main.search') }}">
+        <i class="bi bi-search"></i>
+        <input name="q" placeholder="Search drives, jobs, questions, topics…" value="{{ request.args.get('q','') if request.endpoint=='main.search' }}">
+      </form>
+      <div class="ms-auto d-flex align-items-center gap-1">
+        <a class="btn btn-icon" href="{{ url_for('assistant.chat_page') }}" title="Placement AI Assistant"><i class="bi bi-stars"></i></a>
+        <button class="btn btn-icon" id="themeToggle" title="Toggle dark mode"><i class="bi bi-moon-stars"></i></button>
+        <div class="dropdown">
+          <button class="btn btn-icon position-relative" data-bs-toggle="dropdown" id="notifBtn" title="Notifications">
+            <i class="bi bi-bell"></i>
+            {% if unread_count %}<span class="badge-dot">{{ unread_count if unread_count < 100 else '99+' }}</span>{% endif %}
+          </button>
+          <div class="dropdown-menu dropdown-menu-end notif-menu shadow">
+            <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+              <strong>Notifications</strong>
+              <form method="post" action="{{ url_for('main.mark_read') }}"><input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-link btn-sm p-0">Mark all read</button></form>
+            </div>
+            <div id="notifList" class="notif-list"><div class="p-3 text-muted small">Loading…</div></div>
+            <a class="dropdown-item text-center small py-2 border-top" href="{{ url_for('main.notifications') }}">View all & preferences</a>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="btn user-chip" data-bs-toggle="dropdown">
+            <span class="avatar">{{ g.user.full_name[:1] }}</span>
+            <span class="d-none d-md-inline text-start lh-sm"><strong>{{ g.user.full_name }}</strong><small class="d-block text-muted">{{ ROLE_LABELS[role] }}</small></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow">
+            {% if role == 'STUDENT' %}<li><a class="dropdown-item" href="{{ url_for('profile.view') }}"><i class="bi bi-person me-2"></i>My profile</a></li>{% endif %}
+            <li><a class="dropdown-item" href="{{ url_for('main.notifications') }}"><i class="bi bi-sliders me-2"></i>Notification settings</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}"><i class="bi bi-key me-2"></i>Change password</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Sign out</a></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+    <main class="content">
+      {% with msgs = get_flashed_messages(with_categories=true) %}
+        {% for cat, m in msgs %}
+          <div class="alert alert-{{ cat }} alert-dismissible fade show shadow-sm" role="alert">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        {% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">© {{ now.year }} {{ INSTITUTION }} · Smart Student Placement Portal</footer>
+  </div>
+</div>
+{% else %}
+  {% block public %}{% endblock %}
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

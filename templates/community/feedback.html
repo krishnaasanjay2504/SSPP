@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Feedback & Survey{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Feedback & Surveys</h1><p>Help us improve placement training, drives and this portal.</p></div></div>
+<div class="row g-4">
+  <div class="col-lg-5"><div class="card"><div class="card-header">Give feedback</div>
+    <form class="card-body" method="post">
+      <label class="form-label small">About</label><select class="form-select mb-3" name="category">{% for c in ['Placement Training','Mock Interviews','Campus Drive Process','Learning Content','Portal Experience','Recruiter Experience'] %}<option>{{ c }}</option>{% endfor %}</select>
+      <label class="form-label small d-block">Rating</label>
+      <div class="btn-group mb-3">{% for i in range(1, 6) %}<input type="radio" class="btn-check" name="rating" value="{{ i }}" id="r{{i}}" {{ 'checked' if i == 5 }}><label class="btn btn-outline-warning" for="r{{i}}">{{ i }} ★</label>{% endfor %}</div>
+      <label class="form-label small">Comments</label><textarea class="form-control mb-3" rows="4" name="comments"></textarea>
+      <button class="btn btn-gradient w-100">Submit feedback</button></form></div></div>
+  {% if summary %}
+  <div class="col-lg-7">
+    <div class="card mb-4"><div class="card-header">Survey summary</div><div class="table-responsive"><table class="table mb-0"><thead><tr><th>Area</th><th>Responses</th><th>Avg rating</th></tr></thead><tbody>
+      {% for s in summary %}<tr><td>{{ s.category }}</td><td>{{ s.n }}</td><td><span class="text-warning">★</span> {{ s.avg }}</td></tr>{% endfor %}</tbody></table></div></div>
+    <div class="card"><div class="card-header">Recent comments</div><ul class="list-clean px-3 small">{% for r in recent if r.comments %}<li><strong>{{ r.category }}</strong> · {{ r.rating }}★ — {{ r.comments }} <span class="text-muted">({{ r.full_name }})</span></li>{% endfor %}</ul></div>
+  </div>{% endif %}
+</div>
+{% endblock %}

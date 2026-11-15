@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Company profile{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Company profile</h1><p>Shown to students on your drives.</p></div></div>
+<form method="post" class="card p-4" style="max-width:900px"><div class="row g-3">
+  <div class="col-md-6"><label class="form-label">Company name</label><input class="form-control" name="name" value="{{ c.name or '' }}" required></div>
+  <div class="col-md-6"><label class="form-label">Industry</label><input class="form-control" name="industry" value="{{ c.industry or '' }}"></div>
+  <div class="col-md-6"><label class="form-label">Website</label><input class="form-control" name="website" value="{{ c.website or '' }}"></div>
+  <div class="col-md-6"><label class="form-label">Headquarters</label><input class="form-control" name="hq_location" value="{{ c.hq_location or '' }}"></div>
+  <div class="col-12"><label class="form-label">About</label><textarea class="form-control" rows="5" name="about">{{ c.about or '' }}</textarea></div>
+</div><button class="btn btn-gradient mt-4">Save</button></form>
+{% endblock %}

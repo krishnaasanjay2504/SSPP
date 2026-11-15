@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, logo, empty with context %}
+{% block title %}Offers{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Offer Management</h1><p>Track offer details, CTC, joining date and respond before the deadline. Multiple offers are supported.</p></div>
+  <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#offModal"><i class="bi bi-plus-lg me-1"></i>Record off-campus offer</button></div>
+<div class="row g-4">
+{% for o in offers %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100 {{ 'border-success' if o.status=='ACCEPTED' }}">
+      <div class="card-body">
+        <div class="d-flex gap-3 mb-3">{{ logo(o.company_name) }}<div class="flex-grow-1"><h5 class="fw-bold mb-0">{{ o.company_name }}</h5><div class="text-muted">{{ o.job_role }}</div></div>{{ badge(o.status) }}</div>
+        <div class="display-6 fw-bold text-success mb-2">₹{{ o.ctc_lpa }} <small class="fs-6 text-muted">LPA</small></div>
+        <dl class="kv small">
+          <dt>Location</dt><dd>{{ o.location or '—' }}</dd>
+          <dt>Joining date</dt><dd>{{ o.joining_date|d or '—' }}</dd>
+          <dt>Respond by</dt><dd class="{{ 'text-danger fw-semibold' if o.status=='PENDING' }}">{{ o.accept_by|d or '—' }}</dd>
+          <dt>Source</dt><dd>{{ o.source|label }}</dd>
+        </dl>
+      </div>
+      <div class="card-footer bg-transparent d-flex gap-2">
+        {% if o.offer_letter %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('drives.offer_letter', oid=o.id) }}" target="_blank"><i class="bi bi-file-earmark-pdf"></i> Offer letter</a>{% endif %}
+        {% if o.status == 'PENDING' %}
+        <form method="post" action="{{ url_for('drives.respond_offer', oid=o.id) }}" class="ms-auto d-flex gap-2" data-confirm="Confirm your decision?">
+          <button name="action" value="DECLINED" class="btn btn-sm btn-outline-danger">Decline</button>
+          <button name="action" value="ACCEPTED" class="btn btn-sm btn-success">Accept</button>
+        </form>{% endif %}
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="col-12"><div class="card">{{ empty('award', 'No offers yet — keep going, your preparation will pay off!') }}</div></div>
+{% endfor %}
+</div>
+<div class="modal fade" id="offModal"><div class="modal-dialog"><form class="modal-content" method="post">
+  <div class="modal-header"><h5 class="modal-title">Record an off-campus offer</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body row g-2">
+    <div class="col-12"><label class="form-label">Company</label><input class="form-control" name="company_name" required></div>
+    <div class="col-12"><label class="form-label">Role</label><input class="form-control" name="job_role" required></div>
+    <div class="col-6"><label class="form-label">CTC (LPA)</label><input class="form-control" type="number" step="0.01" name="ctc_lpa" required></div>
+    <div class="col-6"><label class="form-label">Location</label><input class="form-control" name="location"></div>
+    <div class="col-6"><label class="form-label">Joining date</label><input class="form-control" type="date" name="joining_date"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-primary">Save</button></div>
+</form></div></div>
+{% endblock %}

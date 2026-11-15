@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, empty with context %}
+{% block title %}Students{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Student Management</h1><p>{{ rows|length }} students · master data, eligibility, resume and placement status</p></div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{{ url_for('admin.students', export=1, **a.to_dict()) }}"><i class="bi bi-download me-1"></i>Export</a>
+    {% if has_role('TPO','ADMIN') %}<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#impModal"><i class="bi bi-upload me-1"></i>Import CSV</button>{% endif %}
+  </div></div>
+<form class="card p-3 mb-3 row g-2 flex-row mx-0">
+  <div class="col-md-3"><input class="form-control" name="q" value="{{ a.get('q','') }}" placeholder="Name, reg. no or email"></div>
+  <div class="col-md-2"><select class="form-select" name="dept"><option value="">Dept</option>{% for d in DEPARTMENTS %}<option {{ 'selected' if a.get('dept')==d }}>{{ d }}</option>{% endfor %}</select></div>
+  <div class="col-md-1"><select class="form-select" name="batch"><option value="">Batch</option>{% for b in batches %}<option {{ 'selected' if a.get('batch')==b|string }}>{{ b }}</option>{% endfor %}</select></div>
+  <div class="col-md-1"><input class="form-control" name="min_cgpa" value="{{ a.get('min_cgpa','') }}" placeholder="CGPA ≥"></div>
+  <div class="col-md-2"><input class="form-control" name="skill" value="{{ a.get('skill','') }}" placeholder="Skill"></div>
+  <div class="col-md-2"><select class="form-select" name="status"><option value="">Status</option><option {{ 'selected' if a.get('status')=='PLACED' }}>PLACED</option><option {{ 'selected' if a.get('status')=='NOT_PLACED' }}>NOT_PLACED</option></select></div>
+  <div class="col-md-1"><button class="btn btn-primary w-100"><i class="bi bi-funnel"></i></button></div>
+  <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="backlogs" value="0" id="nb" {{ 'checked' if a.get('backlogs')=='0' }}><label class="form-check-label small" for="nb">No active backlogs only</label></div></div>
+</form>
+<div class="card"><div class="table-responsive"><table class="table align-middle mb-0">
+  <thead><tr><th>Student</th><th>Dept</th><th>Batch</th><th>CGPA</th><th>Backlogs</th><th>Resumes</th><th>Applications</th><th>Offers</th><th>Status</th></tr></thead><tbody>
+  {% for s in rows %}<tr><td><a class="fw-semibold" href="{{ url_for('admin.student_detail', uid=s.id) }}">{{ s.full_name }}</a><div class="small text-muted">{{ s.reg_no }} · {{ s.email }}</div></td>
+    <td>{{ s.department }}</td><td>{{ s.batch_year }}</td><td class="fw-semibold">{{ s.cgpa }}</td><td>{{ s.active_backlogs }}</td>
+    <td>{% if s.resumes %}<i class="bi bi-check-circle-fill text-success"></i> {{ s.resumes }}{% else %}<i class="bi bi-x-circle text-danger"></i>{% endif %}</td>
+    <td>{{ s.apps }}</td><td>{{ s.offers }}{% if s.best_ctc %} <span class="small text-muted">(₹{{ s.best_ctc }})</span>{% endif %}</td><td>{{ badge(s.placement_status or 'NOT_PLACED') }}</td></tr>
+  {% else %}<tr><td colspan="9">{{ empty('people', 'No students match.') }}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+<div class="modal fade" id="impModal"><div class="modal-dialog"><form class="modal-content" method="post" enctype="multipart/form-data" action="{{ url_for('admin.import_students') }}">
+  <div class="modal-header"><h5 class="modal-title">Import students</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><p class="small">CSV header: <code>full_name,email,reg_no,department,batch_year,cgpa,tenth_pct,twelfth_pct,active_backlogs,gender</code>. Initial password = register number.</p>
+    <input class="form-control" type="file" name="file" accept=".csv" required></div>
+  <div class="modal-footer"><button class="btn btn-primary">Import</button></div></form></div></div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import logo, badge, empty with context %}
+{% block title %}{{ c.name }} preparation{% endblock %}
+{% block content %}
+<div class="card p-4 mb-4"><div class="d-flex gap-3 align-items-center">{{ logo(c.name) }}<div><h2 class="fw-bold mb-0">{{ c.name }} — Preparation</h2><div class="text-muted">{{ c.industry or '' }} {{ c.about[:160] if c.about else '' }}</div></div></div>
+  <h6 class="fw-bold mt-4">Selection process</h6>
+  <div class="pipeline">{% for r in rounds %}<span class="p">{{ r }}</span>{% if not loop.last %}<i class="bi bi-chevron-right arrow"></i>{% endif %}{% endfor %}</div></div>
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card mb-4"><div class="card-header"><i class="bi bi-ui-checks me-1"></i>Mock assessments</div>
+      <ul class="list-clean px-3">{% for q in quizzes %}<li class="d-flex justify-content-between"><span>{{ q.title }} <span class="small text-muted">· {{ q.duration_min }} min</span></span><a class="btn btn-sm btn-outline-primary" href="{{ url_for('learn.quiz_start', qid=q.id) }}">Start</a></li>{% else %}<li class="small text-muted">No company-specific tests yet.</li>{% endfor %}</ul></div>
+    <div class="card"><div class="card-header"><i class="bi bi-mic me-1"></i>Interview questions</div>
+      <ul class="list-clean px-3">{% for q in questions + general %}<li><span class="chip gray">{{ q.category|label }}</span> {{ q.question_text }}</li>{% endfor %}</ul></div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card mb-4"><div class="card-header"><i class="bi bi-building me-1"></i>Drives</div>
+      <ul class="list-clean px-3">{% for d in drives %}<li class="d-flex justify-content-between"><a href="{{ url_for('drives.detail', did=d.id) }}">{{ d.job_role }} · ₹{{ d.ctc_lpa }} LPA</a>{{ badge(d.status) }}</li>{% else %}<li class="small text-muted">No drives yet.</li>{% endfor %}</ul></div>
+    <div class="card"><div class="card-header"><i class="bi bi-journal-richtext me-1"></i>Placement experiences</div>
+      <div class="card-body">{% for x in exps %}<div class="mb-3 pb-3 border-bottom"><strong>{{ x.job_role }} ({{ x.exp_year }})</strong> <span class="text-warning">{{ '★' * (x.rating or 0) }}</span> {{ badge(x.outcome) if x.outcome }}
+        <div class="small text-muted">{{ x.rounds_desc }}</div><div class="small mt-1">{{ x.content|truncate(300) }}</div>{% if x.tips %}<div class="small mt-1"><i class="bi bi-lightbulb text-warning"></i> {{ x.tips }}</div>{% endif %}</div>
+      {% else %}<div class="small text-muted">No experiences shared yet. <a href="{{ url_for('community.experiences') }}">Share yours</a></div>{% endfor %}</div></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Preview · {{ r.title }}{% endblock %}
+{% block head %}
+<style>
+  .paper { background: #fff; color: #222; max-width: 820px; margin: 0 auto; padding: 48px 56px; box-shadow: 0 10px 40px rgba(0,0,0,.12); border-radius: 6px; font-family: Georgia, 'Times New Roman', serif; }
+  .paper.t-modern, .paper.t-elegant, .paper.t-teal, .paper.t-minimal { font-family: 'Inter', Arial, sans-serif; }
+  .paper .rhead { {% if r.template_code in ('modern','elegant','teal') %}background: {{ color }}; color: #fff; padding: 18px 22px; border-radius: 8px;{% else %}border-bottom: 3px solid {{ color }}; padding-bottom: 10px;{% endif %} }
+  .paper .rname { font-size: 1.9rem; font-weight: 800; {% if r.template_code == 'classic' %}text-align:center;{% endif %} }
+  .paper .rrole { font-size: 1.05rem; opacity: .9 } .paper .rcontact { font-size: .82rem; opacity: .9; margin-top: 2px }
+  .paper .rsec { font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: {{ color }}; border-bottom: 1.5px solid {{ '#ddd' if r.template_code=='minimal' else color }}; margin: 18px 0 6px; padding-bottom: 3px; font-size: .92rem }
+  .paper .rtext { margin: 2px 0 6px; line-height: 1.5; font-size: .9rem } .paper .ritem { margin-top: 6px; font-size: .92rem } .paper .rdate { color: #666; font-size: .8rem; white-space: nowrap }
+  .paper .small { font-size: .8rem }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-head no-print">
+  <div><h1>{{ r.title }}</h1><p>Preview before download · {{ templates[r.template_code][0] if r.template_code in templates else 'Modern' }} template</p></div>
+  <div class="d-flex gap-2">
+    {% if g.user.id == r.user_id %}<a class="btn btn-outline-secondary" href="{{ url_for('resume.edit', rid=r.id) }}"><i class="bi bi-pencil me-1"></i>Edit</a>{% endif %}
+    <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+    <a class="btn btn-gradient" href="{{ url_for('resume.pdf', rid=r.id, download=1) }}"><i class="bi bi-filetype-pdf me-1"></i>Download PDF</a>
+  </div>
+</div>
+<div class="paper t-{{ r.template_code }}">{% include "resume/_body.html" %}</div>
+{% endblock %}

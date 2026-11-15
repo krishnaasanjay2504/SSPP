@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, logo, empty with context %}
+{% block title %}Placement Drives{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Placement Drives</h1><p>Create drives, configure eligibility, invite students, schedule rounds, upload results and track offers.</p></div>
+  {% if has_role('TPO','ADMIN') %}<a class="btn btn-gradient" href="{{ url_for('drives.new_drive') }}"><i class="bi bi-plus-lg me-1"></i>New drive</a>{% endif %}</div>
+<div class="card"><div class="table-responsive"><table class="table align-middle mb-0">
+  <thead><tr><th>Company / Role</th><th>CTC</th><th>Eligibility</th><th>Deadline</th><th>Drive</th><th>Status</th><th>Applicants</th><th>Selected</th><th></th></tr></thead><tbody>
+  {% for d in rows %}<tr><td><div class="d-flex gap-2 align-items-center">{{ logo(d.company) }}<div><div class="fw-semibold">{{ d.company }}</div><div class="small text-muted">{{ d.job_role }}</div></div></div></td>
+    <td>₹{{ d.ctc_lpa }}</td><td class="small">CGPA ≥ {{ d.min_cgpa }}<br>{{ d.branches }}</td><td class="small">{{ d.reg_deadline|dt }}</td><td class="small">{{ d.drive_date|d }}</td>
+    <td>{{ badge(d.status) }}</td><td>{{ d.applicants }}</td><td>{{ d.selected }}</td>
+    <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('drives.manage', did=d.id) }}">{{ 'View' if has_role('FACULTY') else 'Manage' }}</a></td></tr>
+  {% else %}<tr><td colspan="9">{{ empty('building', 'No drives yet.') }}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, logo, app_stepper, meter with context %}
+{% block title %}{{ d.company }} – {{ d.job_role }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('drives.index') }}" class="small"><i class="bi bi-arrow-left"></i> All drives</a>
+<div class="card p-4 my-3">
+  <div class="d-flex flex-wrap gap-3 align-items-center">
+    {{ logo(d.company) }}
+    <div class="flex-grow-1"><h2 class="fw-bold mb-0">{{ d.company }}</h2><div class="fs-5 text-muted">{{ d.job_role }}</div></div>
+    {{ badge(d.status) }}
+    {% if manage %}<a class="btn btn-outline-primary" href="{{ url_for('drives.manage', did=d.id) }}"><i class="bi bi-gear me-1"></i>Manage drive</a>{% endif %}
+    <a class="btn btn-outline-secondary" href="{{ url_for('learn.company_prep', company=d.company) }}"><i class="bi bi-journal-code me-1"></i>Company prep</a>
+  </div>
+  {% if app %}<div class="mt-4"><h6 class="fw-bold">Your application status</h6>{{ app_stepper(app.status) }}</div>{% endif %}
+</div>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card mb-4"><div class="card-header">Drive details</div><div class="card-body">
+      <dl class="kv">
+        <dt>Company</dt><dd>{{ d.company }}{% if d.industry %} · {{ d.industry }}{% endif %}</dd>
+        <dt>Role</dt><dd>{{ d.job_role }} ({{ d.job_type|label }})</dd>
+        <dt>CTC</dt><dd class="text-success fw-bold">₹{{ d.ctc_lpa }} LPA</dd>
+        <dt>Location</dt><dd>{{ (d.locations or '—')|replace(',', ' / ') }}</dd>
+        <dt>Eligibility</dt><dd>CGPA ≥ {{ d.min_cgpa }}{% if d.min_tenth %} · 10th ≥ {{ d.min_tenth }}%{% endif %}{% if d.min_twelfth %} · 12th ≥ {{ d.min_twelfth }}%{% endif %}</dd>
+        <dt>Branches</dt><dd>{{ (d.branches or 'All branches')|replace(',', ' / ') }}</dd>
+        <dt>Batch</dt><dd>{{ d.batch_year or 'Any' }}</dd>
+        <dt>Backlogs</dt><dd>{% if d.max_active_backlogs == 0 %}No active backlogs{% else %}Up to {{ d.max_active_backlogs }} active{% endif %}{% if d.max_history_backlogs is not none and d.max_history_backlogs < 99 %} · history ≤ {{ d.max_history_backlogs }}{% endif %}</dd>
+        <dt>Skills</dt><dd>{% for s in d.required_skills|csv %}<span class="chip">{{ s }}</span>{% else %}—{% endfor %}</dd>
+        <dt>Registration deadline</dt><dd class="fw-semibold text-danger">{{ d.reg_deadline|dt }}</dd>
+        <dt>Drive date</dt><dd>{{ d.drive_date|dt }}{% if d.venue %} · {{ d.venue }}{% endif %}</dd>
+      </dl>
+      <h6 class="fw-bold mt-4">Placement stages</h6>
+      <div class="pipeline"><span class="p">Registration</span><i class="bi bi-chevron-right arrow"></i><span class="p">Eligibility Check</span>{% for rnd in d.rounds|csv %}<i class="bi bi-chevron-right arrow"></i><span class="p">{{ rnd }}</span>{% endfor %}<i class="bi bi-chevron-right arrow"></i><span class="p">Offer</span></div>
+      <h6 class="fw-bold mt-4">Job description</h6>
+      <div class="text-body">{{ d.job_desc|nl2br }}</div>
+      {% if d.about %}<h6 class="fw-bold mt-4">About {{ d.company }}</h6><p class="text-muted">{{ d.about }}</p>{% endif %}
+    </div></div>
+    {% if events %}
+    <div class="card mb-4"><div class="card-header"><i class="bi bi-calendar3 me-1"></i>Schedule</div>
+      <ul class="list-clean px-3">{% for e in events %}<li class="d-flex justify-content-between"><span><span class="chip" style="background:{{ EVENT_TYPES[e.event_type][1] }}22;color:{{ EVENT_TYPES[e.event_type][1] }}">{{ EVENT_TYPES[e.event_type][0] }}</span> {{ e.title }}</span><span class="small text-muted">{{ e.start_at|dt }}{% if e.venue %} · {{ e.venue }}{% endif %}</span></li>{% endfor %}</ul></div>
+    {% endif %}
+    {% if experiences %}
+    <div class="card"><div class="card-header"><i class="bi bi-journal-richtext me-1"></i>Seniors' experiences with {{ d.company }}</div>
+      <div class="card-body">{% for x in experiences %}<div class="mb-3"><strong>{{ x.job_role }} ({{ x.exp_year }})</strong> <span class="text-warning">{{ '★' * (x.rating or 0) }}</span><div class="small text-muted">{{ x.rounds_desc }}</div><div class="small">{{ x.tips|truncate(220) }}</div></div>{% endfor %}
+      <a href="{{ url_for('community.experiences', company=d.company) }}" class="small">Read all →</a></div></div>
+    {% endif %}
+  </div>
+  <div class="col-lg-4">
+    {% if elig %}
+    <div class="card mb-4 {{ 'border-success' if elig.ok else 'border-danger' }}">
+      <div class="card-header {{ 'text-success' if elig.ok else 'text-danger' }}"><i class="bi bi-{{ 'shield-check' if elig.ok else 'shield-x' }} me-1"></i>{{ 'You are eligible' if elig.ok else 'Not eligible' }}</div>
+      <div class="card-body">
+        {% for p in elig.passed %}<div class="small mb-1"><i class="bi bi-check-circle-fill text-success me-1"></i>{{ p }}</div>{% endfor %}
+        {% for p in elig.reasons %}<div class="small mb-1"><i class="bi bi-x-circle-fill text-danger me-1"></i>{{ p }}</div>{% endfor %}
+        {% if d.required_skills %}<div class="small mt-3 mb-1">Skill match: <strong>{{ elig.skill_match }}%</strong></div>{{ meter(elig.skill_match) }}{% endif %}
+        <hr>
+        {% if app %}
+          <div class="text-center"><div class="small text-muted">Registered on {{ app.applied_at|d }}</div>{{ badge(app.status) }}</div>
+          {% if history %}<ul class="list-clean small mt-3">{% for h in history %}<li><strong>{{ h.status|label }}</strong> · {{ h.changed_at|dt }}{% if h.note %}<div class="text-muted">{{ h.note }}</div>{% endif %}</li>{% endfor %}</ul>{% endif %}
+        {% elif elig.ok and can_register %}
+          <form method="post" action="{{ url_for('drives.apply', did=d.id) }}">
+            {% if resumes %}<label class="form-label small">Attach resume</label><select class="form-select form-select-sm mb-2" name="resume_id">{% for r in resumes %}<option value="{{ r.id }}">{{ r.title }}</option>{% endfor %}</select>{% endif %}
+            <button class="btn btn-gradient w-100"><i class="bi bi-send me-1"></i>Register for this drive</button>
+          </form>
+        {% elif not can_register %}<div class="small text-muted text-center">Registration is closed.</div>
+        {% else %}<div class="small text-muted">Improve the highlighted criteria to qualify for similar drives. <a href="{{ url_for('profile.view') }}">Update profile</a></div>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+    <div class="card"><div class="card-body"><div class="d-flex justify-content-between"><span class="text-muted">Registrations</span><strong>{{ n_app }}</strong></div></div></div>
+  </div>
+</div>
+{% endblock %}

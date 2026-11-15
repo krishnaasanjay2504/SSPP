@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Certificate · {{ p.name }}{% endblock %}
+{% block content %}
+<div class="text-end mb-3 no-print"><button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print / Save as PDF</button></div>
+<div class="mx-auto text-center p-5" style="max-width:900px;background:#fff;color:#222;border:12px double {{ p.color }};border-radius:8px">
+  <div style="font-size:3rem;color:{{ p.color }}"><i class="bi bi-award-fill"></i></div>
+  <div class="text-uppercase" style="letter-spacing:4px;color:#777">Certificate of Completion</div>
+  <div class="my-3" style="font-family:Georgia,serif;font-size:1.1rem">This is to certify that</div>
+  <div style="font-family:Georgia,serif;font-size:2.6rem;font-weight:700;color:{{ p.color }}">{{ g.user.full_name }}</div>
+  <div class="my-3" style="font-family:Georgia,serif;font-size:1.1rem">has successfully completed the learning path</div>
+  <div class="fs-3 fw-bold">{{ p.name }}</div>
+  <div class="text-muted mt-2">{{ p.description }}</div>
+  <div class="d-flex justify-content-between mt-5 pt-4 px-4" style="font-size:.9rem">
+    <div><div class="fw-bold">{{ when|d }}</div><div class="text-muted border-top pt-1">Date</div></div>
+    <div><div class="fw-bold">Training & Placement Cell</div><div class="text-muted border-top pt-1">{{ INSTITUTION }}</div></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_macros.html" import logo, badge with context %}
+{% block title %}{{ j.job_role }} · {{ j.company }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('jobs.index') }}" class="small"><i class="bi bi-arrow-left"></i> All opportunities</a>
+<div class="row g-4 mt-1">
+  <div class="col-lg-8"><div class="card p-4">
+    <div class="d-flex gap-3 align-items-center mb-3">{{ logo(j.company) }}<div><h2 class="fw-bold mb-0">{{ j.job_role }}</h2><div class="text-muted">{{ j.company }}</div></div>
+      {% if j.verified %}<span class="chip green ms-auto"><i class="bi bi-patch-check-fill"></i>Verified by placement cell</span>{% else %}<span class="chip amber ms-auto">Unverified – apply with care</span>{% endif %}</div>
+    <h6 class="fw-bold">Job description</h6><div>{{ j.description|nl2br }}</div>
+    <h6 class="fw-bold mt-4">Required skills</h6>{% for s in (j.skills or '')|csv %}<span class="chip">{{ s }}</span>{% endfor %}
+  </div></div>
+  <div class="col-lg-4"><div class="card p-4">
+    <dl class="kv small">
+      <dt>Category</dt><dd>{{ j.category }}</dd><dt>Type</dt><dd>{{ job_types.get(j.job_type, j.job_type) }}</dd>
+      <dt>Work mode</dt><dd>{{ work_modes.get(j.work_mode, j.work_mode) }}</dd><dt>Location</dt><dd>{{ j.location }}</dd>
+      <dt>Experience</dt><dd>{{ j.experience or 'Fresher' }}</dd><dt>Batch</dt><dd>{{ j.batch or 'Any' }}</dd>
+      <dt>Salary / CTC</dt><dd class="fw-bold text-success">{{ j.ctc or 'Not disclosed' }}</dd><dt>Deadline</dt><dd class="text-danger fw-semibold">{{ j.deadline|d or 'Open' }}</dd>
+      <dt>Source</dt><dd>{{ j.source }}</dd><dt>Status</dt><dd>{{ badge(j.status) }}</dd>
+    </dl>
+    {% if j.apply_url %}<a class="btn btn-gradient w-100 mt-2" href="{{ j.apply_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1"></i>Apply on company site</a>{% endif %}
+    <form method="post" action="{{ url_for('jobs.toggle_save', jid=j.id) }}"><button class="btn btn-outline-primary w-100 mt-2"><i class="bi bi-bookmark{{ '-fill' if saved }} me-1"></i>{{ 'Saved' if saved else 'Save for later' }}</button></form>
+    <p class="small text-muted mt-3 mb-0"><i class="bi bi-shield-exclamation me-1"></i>Never pay any fee to apply for a job. Report suspicious postings via the Helpdesk.</p>
+  </div></div>
+</div>
+{% endblock %}

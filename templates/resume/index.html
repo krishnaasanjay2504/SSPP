@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, empty with context %}
+{% block title %}Resume Builder{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Resume Builder</h1><p>Create role-specific resumes from your profile, choose a template, preview and export as PDF.</p></div>
+  <a class="btn btn-outline-primary" href="{{ url_for('assistant.resume_assistant') }}"><i class="bi bi-magic me-1"></i>AI Resume Assistant</a>
+</div>
+<div class="card p-3 mb-4">
+  <form method="post" class="row g-2 align-items-end">
+    <div class="col-md-4"><label class="form-label small">Start from</label>
+      <select class="form-select" name="title" id="presetSel">
+        {% for p in presets %}<option>{{ p }}</option>{% endfor %}<option value="">Custom…</option>
+      </select></div>
+    <div class="col-md-3 d-none" id="customTitle"><label class="form-label small">Resume name</label><input class="form-control" name="title_custom" placeholder="e.g. Product Analyst Resume"></div>
+    <div class="col-md-3"><label class="form-label small">Template</label><select class="form-select" name="template_code">{% for k, (n, c) in templates.items() %}<option value="{{ k }}">{{ n }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><button class="btn btn-gradient w-100"><i class="bi bi-plus-lg me-1"></i>Create resume</button></div>
+  </form>
+</div>
+<div class="row g-4">
+  {% for r in resumes %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100 drive-card">
+      <div class="resume-thumb" style="background:linear-gradient(135deg,{{ templates.get(r.template_code, templates['modern'])[1] }},#a855f7);border-radius:16px 16px 0 0"><i class="bi bi-file-earmark-person"></i></div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div><h5 class="fw-bold mb-1">{{ r.title }}</h5><div class="small text-muted">{{ r.target_role or 'No target role' }} · {{ templates.get(r.template_code, ('Modern',))[0] }} template</div>
+          <div class="small text-muted">Updated {{ r.updated_at|ago }}</div></div>
+          {{ ring(r.score, '#16a34a' if r.score >= 80 else '#f59e0b', true) }}
+        </div>
+      </div>
+      <div class="card-footer bg-transparent d-flex flex-wrap gap-1">
+        <a class="btn btn-sm btn-primary" href="{{ url_for('resume.edit', rid=r.id) }}"><i class="bi bi-pencil"></i> Edit</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('resume.preview', rid=r.id) }}"><i class="bi bi-eye"></i> Preview</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('resume.pdf', rid=r.id, download=1) }}"><i class="bi bi-filetype-pdf"></i> PDF</a>
+        <form method="post" action="{{ url_for('resume.duplicate', rid=r.id) }}"><button class="btn btn-sm btn-outline-secondary" title="Duplicate"><i class="bi bi-copy"></i></button></form>
+        <form method="post" action="{{ url_for('resume.delete', rid=r.id) }}" data-confirm="Delete this resume?"><button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button></form>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12"><div class="card">{{ empty('file-earmark-person', 'No resumes yet. Pick a starting point above — your profile data is filled in automatically.') }}</div></div>
+  {% endfor %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const sel = document.getElementById('presetSel'), ct = document.getElementById('customTitle');
+sel.addEventListener('change', () => ct.classList.toggle('d-none', sel.value !== ''));
+sel.form.addEventListener('submit', () => { if (sel.value === '') { const o = document.createElement('option'); o.value = sel.form.title_custom.value || 'My Resume'; o.selected = true; sel.appendChild(o); } });
+</script>
+{% endblock %}

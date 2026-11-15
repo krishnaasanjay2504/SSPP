@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_macros.html" import logo, badge, empty with context %}
+{% block title %}Placement Experiences{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Placement Experiences & Company Reviews</h1><p>Learn from seniors: rounds, questions asked and preparation tips.</p></div>
+  <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#expModal"><i class="bi bi-pencil-square me-1"></i>Share your experience</button></div>
+<div class="row g-4">
+  <div class="col-xl-8">
+    {% if company %}<div class="mb-2">Showing <span class="chip">{{ company }}</span> <a class="small" href="{{ url_for('community.experiences') }}">clear</a></div>{% endif %}
+    {% for x in rows %}
+    <div class="card mb-3"><div class="card-body">
+      <div class="d-flex gap-3">{{ logo(x.company) }}<div class="flex-grow-1"><h5 class="fw-bold mb-0">{{ x.company }} <small class="text-muted fw-normal">· {{ x.job_role }} · {{ x.exp_year }}</small></h5>
+        <div class="small"><span class="text-warning">{{ '★' * (x.rating or 0) }}{{ '☆' * (5 - (x.rating or 0)) }}</span> · by {{ x.full_name }} {% if x.outcome %}{{ badge(x.outcome) }}{% endif %}</div></div></div>
+      {% if x.rounds_desc %}<div class="pipeline mt-3">{% for r in x.rounds_desc.split('→') %}<span class="p">{{ r.strip() }}</span>{% if not loop.last %}<i class="bi bi-chevron-right arrow"></i>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="mt-3">{{ x.content|md }}</div>
+      {% if x.tips %}<div class="alert alert-info small mb-0"><i class="bi bi-lightbulb me-1"></i><strong>Tips:</strong> {{ x.tips }}</div>{% endif %}
+    </div></div>
+    {% else %}<div class="card">{{ empty('journal-richtext', 'No experiences shared yet.') }}</div>{% endfor %}
+  </div>
+  <div class="col-xl-4"><div class="card"><div class="card-header">Companies</div>
+    <ul class="list-clean px-3">{% for s in summary %}<li class="d-flex justify-content-between"><a href="{{ url_for('community.experiences', company=s.company) }}">{{ s.company }}</a><span class="small"><span class="text-warning">★</span> {{ s.rating }} · {{ s.n }} review{{ 's' if s.n > 1 }}</span></li>{% endfor %}</ul></div></div>
+</div>
+<div class="modal fade" id="expModal"><div class="modal-dialog modal-lg"><form class="modal-content" method="post">
+  <div class="modal-header"><h5 class="modal-title">Share your placement experience</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body row g-2">
+    <div class="col-md-5"><label class="form-label">Company</label><input class="form-control" name="company" required></div>
+    <div class="col-md-4"><label class="form-label">Role</label><input class="form-control" name="job_role"></div>
+    <div class="col-md-3"><label class="form-label">Year</label><input class="form-control" type="number" name="exp_year" value="{{ now.year }}"></div>
+    <div class="col-md-8"><label class="form-label">Rounds (separate with →)</label><input class="form-control" name="rounds_desc" placeholder="Aptitude → Coding → Technical → HR"></div>
+    <div class="col-md-2"><label class="form-label">Rating</label><select class="form-select" name="rating">{% for i in [5,4,3,2,1] %}<option>{{ i }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><label class="form-label">Outcome</label><select class="form-select" name="outcome"><option value="SELECTED">Selected</option><option value="REJECTED">Not selected</option></select></div>
+    <div class="col-12"><label class="form-label">Experience (markdown)</label><textarea class="form-control" rows="6" name="content" required></textarea></div>
+    <div class="col-12"><label class="form-label">Tips for juniors</label><textarea class="form-control" rows="2" name="tips"></textarea></div>
+  </div><div class="modal-footer"><button class="btn btn-primary">Share</button></div></form></div></div>
+{% endblock %}

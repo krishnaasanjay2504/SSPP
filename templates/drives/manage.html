@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, logo, stat, empty with context %}
+{% block title %}Manage · {{ d.company }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="d-flex gap-3 align-items-center">{{ logo(d.company) }}<div><h1>{{ d.company }} — {{ d.job_role }}</h1><p>₹{{ d.ctc_lpa }} LPA · Register by {{ d.reg_deadline|dt }} · {{ badge(d.status) }}</p></div></div>
+  {% if not readonly %}
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-outline-secondary" href="{{ url_for('drives.edit_drive', did=d.id) }}"><i class="bi bi-pencil me-1"></i>Edit</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('drives.export', did=d.id) }}"><i class="bi bi-download me-1"></i>Export CSV</a>
+    <form method="post" action="{{ url_for('drives.invite', did=d.id) }}"><button class="btn btn-gradient"><i class="bi bi-send me-1"></i>Invite eligible students</button></form>
+  </div>{% endif %}
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg">{{ stat('people', n_eligible, 'Eligible students') }}</div>
+  <div class="col-6 col-lg">{{ stat('person-plus', counts.values()|sum, 'Registered', 'sky') }}</div>
+  <div class="col-6 col-lg">{{ stat('funnel', counts.get('SHORTLISTED',0) + counts.get('ASSESSMENT',0) + counts.get('TECH_INTERVIEW',0) + counts.get('HR_INTERVIEW',0), 'In process', 'amber') }}</div>
+  <div class="col-6 col-lg">{{ stat('trophy', counts.get('SELECTED',0), 'Selected', 'green') }}</div>
+  <div class="col-6 col-lg">{{ stat('envelope-paper', offers|length, 'Offers issued', 'violet') }}</div>
+</div>
+<div class="row g-4">
+  <div class="col-xl-8">
+    <div class="card">
+      <div class="card-header d-flex flex-wrap gap-2 align-items-center">
+        <span class="me-auto">Applicants</span>
+        <a class="chip {{ 'gray' if status_f }}" href="{{ url_for('drives.manage', did=d.id) }}">All</a>
+        {% for s in statuses %}<a class="chip {{ 'gray' if status_f != s }}" href="{{ url_for('drives.manage', did=d.id, status=s) }}">{{ s|label }} {{ counts.get(s, 0) }}</a>{% endfor %}
+      </div>
+      <form method="post" action="{{ url_for('drives.update_status', did=d.id) }}">
+      <div class="table-responsive"><table class="table align-middle mb-0">
+        <thead><tr>{% if not readonly %}<th><input type="checkbox" class="form-check-input" onclick="document.querySelectorAll('.appchk').forEach(c=>c.checked=this.checked)"></th>{% endif %}<th>Student</th><th>Dept</th><th>CGPA</th><th>Status</th><th>Round</th><th></th></tr></thead>
+        <tbody>
+        {% for a in apps %}
+        <tr>{% if not readonly %}<td><input type="checkbox" class="form-check-input appchk" name="app_ids" value="{{ a.id }}"></td>{% endif %}
+          <td><div class="fw-semibold">{{ a.full_name }}</div><div class="small text-muted">{{ a.reg_no }} · {{ a.email }}</div></td>
+          <td>{{ a.department }}</td><td>{{ a.cgpa }}</td><td>{{ badge(a.status) }}</td><td class="small">{{ a.current_round }}</td>
+          <td class="text-nowrap">
+            {% if a.resume_id %}<a class="btn btn-sm btn-link" target="_blank" href="{{ url_for('resume.preview', rid=a.resume_id) }}" title="Resume"><i class="bi bi-file-earmark-person"></i></a>{% endif %}
+            {% if not readonly and a.status in ('SELECTED','HR_INTERVIEW') %}<button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#offerModal" data-app="{{ a.id }}" data-name="{{ a.full_name }}">Offer</button>{% endif %}
+          </td></tr>
+        {% else %}<tr><td colspan="7">{{ empty('people', 'No applicants yet.') }}</td></tr>{% endfor %}
+        </tbody>
+      </table></div>
+      {% if not readonly and apps %}
+      <div class="card-footer bg-transparent row g-2 align-items-center">
+        <div class="col-md-3"><select class="form-select form-select-sm" name="new_status" required><option value="">Move selected to…</option>{% for s in statuses %}<option value="{{ s }}">{{ s|label }}</option>{% endfor %}</select></div>
+        <div class="col-md-6"><input class="form-control form-control-sm" name="note" placeholder="Note to candidates (optional)"></div>
+        <div class="col-md-3"><button class="btn btn-sm btn-primary w-100">Update & notify</button></div>
+      </div>{% endif %}
+      </form>
+    </div>
+  </div>
+  <div class="col-xl-4">
+    {% if not readonly %}
+    <div class="card mb-4"><div class="card-header"><i class="bi bi-calendar-plus me-1"></i>Schedule a round</div>
+      <form class="card-body" method="post" action="{{ url_for('drives.schedule_round', did=d.id) }}">
+        <select class="form-select form-select-sm mb-2" name="event_type">{% for k, (l, c) in EVENT_TYPES.items() if k not in ('DEADLINE','DRIVE','TRAINING') %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select>
+        <input class="form-control form-control-sm mb-2" name="title" placeholder="Title (optional)">
+        <div class="row g-2 mb-2"><div class="col"><input class="form-control form-control-sm" type="datetime-local" name="start_at" required></div><div class="col"><input class="form-control form-control-sm" type="datetime-local" name="end_at"></div></div>
+        <input class="form-control form-control-sm mb-2" name="venue" placeholder="Venue / meeting link">
+        <textarea class="form-control form-control-sm mb-2" name="description" rows="2" placeholder="Instructions"></textarea>
+        <button class="btn btn-sm btn-primary w-100">Schedule & notify candidates</button>
+      </form></div>
+    <div class="card mb-4"><div class="card-header"><i class="bi bi-upload me-1"></i>Upload results (CSV)</div>
+      <form class="card-body" method="post" enctype="multipart/form-data" action="{{ url_for('drives.upload_results', did=d.id) }}">
+        <p class="small text-muted mb-2">Format: <code>email_or_regno,STATUS,note</code><br>Statuses: {{ statuses|join(', ') }}</p>
+        <input class="form-control form-control-sm mb-2" type="file" name="file" accept=".csv">
+        <textarea class="form-control form-control-sm mb-2" rows="3" name="csv_text" placeholder="…or paste rows here"></textarea>
+        <button class="btn btn-sm btn-primary w-100">Process results</button>
+      </form></div>
+    {% endif %}
+    <div class="card mb-4"><div class="card-header">Schedule</div>
+      <ul class="list-clean px-3 small">{% for e in events %}<li><span class="fw-semibold">{{ EVENT_TYPES[e.event_type][0] }}</span> · {{ e.start_at|dt }}<div class="text-muted">{{ e.title }}</div></li>{% else %}<li class="text-muted">No events.</li>{% endfor %}</ul></div>
+    {% if not readonly and not_applied %}
+    <div class="card"><div class="card-header">Eligible, not yet registered ({{ not_applied|length }})</div>
+      <ul class="list-clean px-3 small" style="max-height:240px;overflow:auto">{% for s in not_applied[:60] %}<li>{{ s.full_name }} <span class="text-muted">· {{ s.department }} · {{ s.cgpa }}</span></li>{% endfor %}</ul></div>
+    {% endif %}
+  </div>
+</div>
+<div class="modal fade" id="offerModal"><div class="modal-dialog"><form class="modal-content" method="post" enctype="multipart/form-data" action="{{ url_for('drives.issue_offer', did=d.id) }}">
+  <div class="modal-header"><h5 class="modal-title">Issue offer to <span id="offerName"></span></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body row g-2"><input type="hidden" name="app_id" id="offerApp">
+    <div class="col-12"><label class="form-label">Role</label><input class="form-control" name="job_role" value="{{ d.job_role }}"></div>
+    <div class="col-6"><label class="form-label">CTC (LPA)</label><input class="form-control" type="number" step="0.01" name="ctc_lpa" value="{{ d.ctc_lpa }}"></div>
+    <div class="col-6"><label class="form-label">Location</label><input class="form-control" name="location" value="{{ (d.locations or '')|csv|first }}"></div>
+    <div class="col-6"><label class="form-label">Joining date</label><input class="form-control" type="date" name="joining_date"></div>
+    <div class="col-6"><label class="form-label">Accept by</label><input class="form-control" type="date" name="accept_by"></div>
+    <div class="col-12"><label class="form-label">Offer letter (PDF)</label><input class="form-control" type="file" name="letter" accept=".pdf"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-success">Issue offer</button></div>
+</form></div></div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('offerModal').addEventListener('show.bs.modal', e => {
+  document.getElementById('offerApp').value = e.relatedTarget.dataset.app;
+  document.getElementById('offerName').textContent = e.relatedTarget.dataset.name;
+});
+</script>
+{% endblock %}

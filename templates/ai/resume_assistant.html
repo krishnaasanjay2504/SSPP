@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring with context %}
+{% block title %}AI Resume Assistant{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1><i class="bi bi-magic text-primary"></i> AI Resume Assistant</h1>
+  <p>Compare your resume with a job description, find missing keywords, improve project descriptions and fix grammar. {% if llm %}<span class="chip green">Claude-powered insights on</span>{% endif %}</p></div></div>
+<ul class="nav nav-pills mb-3">
+  {% for k, l, ic in [('match','Resume ↔ JD match','arrow-left-right'),('improve','Improve project descriptions','stars'),('grammar','Grammar & style check','spellcheck')] %}
+  <li class="nav-item"><a class="nav-link {{ 'active' if mode==k }}" data-bs-toggle="pill" href="#m-{{ k }}"><i class="bi bi-{{ ic }} me-1"></i>{{ l }}</a></li>{% endfor %}
+</ul>
+<div class="tab-content">
+  <div class="tab-pane fade {{ 'show active' if mode=='match' }}" id="m-match"><div class="row g-4">
+    <div class="col-xl-5"><form class="card p-3" method="post"><input type="hidden" name="mode" value="match">
+      <label class="form-label small">Resume</label><select class="form-select mb-2" name="resume_id">{% for r in resumes %}<option value="{{ r.id }}" {{ 'selected' if f.get('resume_id')==r.id|string }}>{{ r.title }}</option>{% else %}<option value="">Profile data</option>{% endfor %}</select>
+      <label class="form-label small">Compare with an open drive…</label><select class="form-select mb-2" name="drive_id"><option value="">— or paste a JD below —</option>{% for d in drives %}<option value="{{ d.id }}" {{ 'selected' if f.get('drive_id')==d.id|string }}>{{ d.company }} – {{ d.job_role }}</option>{% endfor %}</select>
+      <label class="form-label small">Job description</label><textarea class="form-control mb-2" rows="10" name="jd" placeholder="Paste the job description here">{{ f.get('jd','') }}</textarea>
+      <button class="btn btn-gradient">Analyse match</button></form></div>
+    <div class="col-xl-7">{% if result %}
+      <div class="card p-4">
+        <div class="d-flex gap-3 align-items-center mb-3">{{ ring(result.score, '#16a34a' if result.score >= 70 else ('#f59e0b' if result.score >= 40 else '#e11d48')) }}<div><h5 class="fw-bold mb-0">Skill match {{ result.score }}%</h5><div class="small text-muted">Based on technical skills detected in the JD</div></div></div>
+        <h6 class="fw-bold">Matched skills</h6><div>{% for s in result.matched %}<span class="chip green">{{ s|title }}</span>{% else %}<span class="small text-muted">None</span>{% endfor %}</div>
+        <h6 class="fw-bold mt-3">Missing skills</h6><div>{% for s in result.missing %}<span class="chip red">{{ s|title }}</span>{% else %}<span class="small text-success">None — great fit!</span>{% endfor %}</div>
+        <h6 class="fw-bold mt-3">Possibly missing keywords</h6><div>{% for s in result.keywords %}<span class="chip amber">{{ s }}</span>{% else %}<span class="small text-muted">—</span>{% endfor %}</div>
+        {% if result.projects %}<h6 class="fw-bold mt-3">Projects to highlight</h6><div>{% for p in result.projects %}<span class="chip">{{ p }}</span>{% endfor %}</div>{% endif %}
+        <h6 class="fw-bold mt-3">Suggested improvements</h6><ul class="small">{% for s in result.suggestions %}<li>{{ s }}</li>{% endfor %}</ul>
+        {% if result.ai %}<div class="msg ai mw-100"><div class="fw-bold mb-1"><i class="bi bi-stars me-1"></i>AI analysis</div>{{ result.ai|md }}</div>{% endif %}
+      </div>{% else %}<div class="card p-5 text-center text-muted"><i class="bi bi-arrow-left-right fs-1"></i><p class="mt-2">Choose a resume and a JD to see matched skills, missing skills and suggestions.</p></div>{% endif %}</div>
+  </div></div>
+
+  <div class="tab-pane fade {{ 'show active' if mode=='improve' }}" id="m-improve"><div class="row g-4">
+    <div class="col-xl-5"><form class="card p-3" method="post"><input type="hidden" name="mode" value="improve">
+      <label class="form-label small">Pick a project from your profile</label><select class="form-select mb-2" name="project_id"><option value="">— or type below —</option>{% for p in projects %}<option value="{{ p.id }}">{{ p.title }}</option>{% endfor %}</select>
+      <input class="form-control mb-2" name="title" placeholder="Project title"><textarea class="form-control mb-2" rows="6" name="text" placeholder="Current description"></textarea>
+      <button class="btn btn-gradient">Suggest stronger description</button></form></div>
+    <div class="col-xl-7">{% if improved %}<div class="card p-4">
+      <h5 class="fw-bold">{{ improved.title }}</h5>{% if improved.original %}<div class="small text-muted mb-3"><strong>Original:</strong> {{ improved.original }}</div>{% endif %}
+      <h6 class="fw-bold">Suggested bullets</h6><ul>{% for b in improved.bullets %}<li>{{ b }}</li>{% endfor %}</ul>
+      <div class="small">{% for t in improved.tips %}<div><i class="bi bi-lightbulb text-warning me-1"></i>{{ t }}</div>{% endfor %}</div>
+      {% if improved.ai %}<div class="msg ai mw-100 mt-3"><div class="fw-bold mb-1"><i class="bi bi-stars me-1"></i>AI rewrite</div>{{ improved.ai|md }}</div>{% endif %}
+    </div>{% endif %}</div>
+  </div></div>
+
+  <div class="tab-pane fade {{ 'show active' if mode=='grammar' }}" id="m-grammar"><div class="row g-4">
+    <div class="col-xl-6"><form class="card p-3" method="post"><input type="hidden" name="mode" value="grammar">
+      <textarea class="form-control mb-2" rows="12" name="text" placeholder="Paste your objective, project descriptions or any resume text">{{ grammar.text if grammar else '' }}</textarea>
+      <button class="btn btn-gradient">Check</button></form></div>
+    <div class="col-xl-6">{% if grammar %}<div class="card p-4"><h6 class="fw-bold">{{ grammar.issues|length }} suggestion(s)</h6>
+      <ul class="small">{% for i in grammar.issues %}<li>{{ i }}</li>{% else %}<li class="text-success">No issues found.</li>{% endfor %}</ul>
+      {% if grammar.ai %}<div class="msg ai mw-100"><div class="fw-bold mb-1"><i class="bi bi-stars me-1"></i>AI proofreading</div>{{ grammar.ai|md }}</div>{% endif %}</div>{% endif %}</div>
+  </div></div>
+</div>
+{% endblock %}

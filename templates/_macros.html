@@ -1,0 +1,40 @@
+{% macro badge(status) -%}
+<span class="badge text-bg-{{ STATUS_COLORS.get(status, 'secondary') }}">{{ status|label }}</span>
+{%- endmacro %}
+
+{% macro ring(p, color='#4f46e5', small=false, label=None) -%}
+<div class="ring {{ 'sm' if small }}" style="--p:{{ p or 0 }};--c:{{ color }}" data-label="{{ label if label is not none else (p or 0)|string + '%' }}"></div>
+{%- endmacro %}
+
+{% macro meter(p) -%}
+{% set p = p or 0 %}
+<div class="meter {{ 'good' if p >= 70 else ('warn' if p >= 40 else 'bad') }}"><span style="width:{{ p }}%"></span></div>
+{%- endmacro %}
+
+{% macro logo(name) -%}
+{% set colors = ['#4f46e5','#0ea5e9','#10b981','#f59e0b','#ec4899','#8b5cf6','#ef4444','#14b8a6'] %}
+<div class="company-logo" style="background:{{ colors[(name|length) % 8] }}">{{ (name or '?')[:1] }}</div>
+{%- endmacro %}
+
+{% macro empty(icon, text) -%}
+<div class="empty"><i class="bi bi-{{ icon }}"></i>{{ text }}</div>
+{%- endmacro %}
+
+{% macro stat(icon, value, label, color='indigo') -%}
+<div class="card stat h-100"><div class="ic ic-{{ color }}"><i class="bi bi-{{ icon }}"></i></div>
+<div><div class="v">{{ value }}</div><div class="l">{{ label }}</div></div></div>
+{%- endmacro %}
+
+{% macro app_stepper(status, rounds=None) -%}
+{% set stages = APP_STAGES %}
+{% set idx = stages.index(status) if status in stages else -1 %}
+<div class="stepper">
+  {% for s in stages %}
+    {% set cls = 'done' if loop.index0 < idx or status == 'SELECTED' else ('current' if loop.index0 == idx else '') %}
+    <div class="st {{ cls }}"><div class="dot">{% if cls == 'done' %}<i class="bi bi-check-lg"></i>{% else %}{{ loop.index }}{% endif %}</div>{{ STAGE_LABELS[s] }}</div>
+  {% endfor %}
+  {% if status in ('REJECTED', 'WITHDRAWN') %}
+    <div class="st failed"><div class="dot"><i class="bi bi-x-lg"></i></div>{{ STAGE_LABELS[status] }}</div>
+  {% endif %}
+</div>
+{%- endmacro %}

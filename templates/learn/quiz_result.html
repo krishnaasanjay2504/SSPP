@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, meter with context %}
+{% block title %}Result · {{ a.title }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><a class="small" href="{{ url_for('learn.quizzes') }}"><i class="bi bi-arrow-left"></i> Quizzes</a><h1>{{ a.title }} — Result</h1><p>Submitted {{ a.submitted_at|dt }}</p></div>
+  <a class="btn btn-gradient" href="{{ url_for('learn.quiz_start', qid=a.quiz_id) }}"><i class="bi bi-arrow-repeat me-1"></i>Retry</a></div>
+<div class="row g-3 mb-4">
+  <div class="col-md-6 col-xl-3"><div class="card p-3 d-flex flex-row gap-3 align-items-center h-100">{{ ring(pct, '#16a34a' if pct >= 70 else ('#f59e0b' if pct >= 40 else '#e11d48')) }}<div><div class="text-muted small">Score</div><div class="fs-3 fw-bold">{{ a.score }}/{{ a.max_score }}</div></div></div></div>
+  <div class="col-md-6 col-xl-3"><div class="card p-3 h-100"><div class="text-muted small">Accuracy</div><div class="fs-3 fw-bold">{{ a.accuracy }}%</div>{{ meter(a.accuracy) }}</div></div>
+  <div class="col-md-6 col-xl-3"><div class="card p-3 h-100"><div class="text-muted small">Time taken</div><div class="fs-3 fw-bold">{{ (a.time_sec // 60) }}m {{ a.time_sec % 60 }}s</div><div class="small text-muted">of {{ a.duration_min }} minutes</div></div></div>
+  <div class="col-md-6 col-xl-3"><div class="card p-3 h-100">
+    <div class="small text-muted">Strong areas</div><div>{% for s in strong %}<span class="chip green">{{ s }}</span>{% else %}<span class="small">—</span>{% endfor %}</div>
+    <div class="small text-muted mt-2">Needs improvement</div><div>{% for s in weak %}<span class="chip red">{{ s }}</span>{% else %}<span class="small">—</span>{% endfor %}</div></div></div>
+</div>
+<h5 class="fw-bold mb-3">Detailed review & explanations</h5>
+{% for x in questions %}
+<div class="card quiz-q mb-3 {{ 'correct' if x.res.ok else 'wrong' }}"><div class="card-body">
+  <div class="d-flex justify-content-between mb-2"><span class="fw-bold">Q{{ loop.index }}. <span class="chip gray">{{ x.topic }}</span></span>
+    {% if x.res.ok %}<span class="chip green"><i class="bi bi-check-lg"></i>Correct</span>{% elif not x.res.given %}<span class="chip amber">Not answered</span>{% else %}<span class="chip red"><i class="bi bi-x-lg"></i>Incorrect</span>{% endif %}</div>
+  <div class="mb-3" style="white-space:pre-wrap">{{ x.question_text }}</div>
+  {% set answers = (x.answer or '').split(',') %}
+  {% if x.qtype == 'FILL' %}
+    <div class="small">Your answer: <strong>{{ x.res.given[0] if x.res.given else '—' }}</strong></div>
+    <div class="small">Correct answer: <strong class="text-success">{{ x.answer.split('|')[0] }}</strong></div>
+  {% else %}
+    {% for o in x.options %}
+      {% set val = o if x.qtype == 'TF' else loop.index0|string %}
+      {% set right = (val|lower == x.answer|lower) if x.qtype == 'TF' else (val in answers) %}
+      <div class="opt {{ 'right' if right }} {{ 'picked-wrong' if val in x.res.given and not right }}">
+        {% if right %}<i class="bi bi-check-circle-fill text-success me-1"></i>{% elif val in x.res.given %}<i class="bi bi-x-circle-fill text-danger me-1"></i>{% else %}<i class="bi bi-circle me-1 text-muted"></i>{% endif %}{{ o }}
+        {% if val in x.res.given %}<span class="small text-muted ms-1">(your choice)</span>{% endif %}</div>
+    {% endfor %}
+  {% endif %}
+  {% if x.explanation %}<div class="alert {{ 'alert-success' if x.res.ok else 'alert-warning' }} small mt-3 mb-0"><i class="bi bi-lightbulb me-1"></i><strong>Explanation:</strong> {{ x.explanation }}</div>{% endif %}
+</div></div>
+{% endfor %}
+{% endblock %}

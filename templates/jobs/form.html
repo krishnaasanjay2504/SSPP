@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Post opportunity{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Post an off-campus opportunity</h1><p>{% if has_role('TPO','ADMIN') %}Published immediately.{% else %}The placement cell verifies postings before students see them.{% endif %}</p></div></div>
+<form method="post" class="card p-4"><div class="row g-3">
+  <div class="col-md-6"><label class="form-label">Company</label><input class="form-control" name="company" required></div>
+  <div class="col-md-6"><label class="form-label">Role</label><input class="form-control" name="job_role" required></div>
+  <div class="col-md-4"><label class="form-label">Domain</label><select class="form-select" name="category">{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select></div>
+  <div class="col-md-4"><label class="form-label">Type</label><select class="form-select" name="job_type">{% for k, v in job_types.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></div>
+  <div class="col-md-4"><label class="form-label">Work mode</label><select class="form-select" name="work_mode">{% for k, v in work_modes.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></div>
+  <div class="col-md-4"><label class="form-label">Location</label><input class="form-control" name="location" placeholder="Bengaluru"></div>
+  <div class="col-md-4"><label class="form-label">Experience</label><input class="form-control" name="experience" value="Fresher"></div>
+  <div class="col-md-4"><label class="form-label">Batch</label><input class="form-control" name="batch" value="{{ now.year }}, {{ now.year + 1 }}"></div>
+  <div class="col-md-4"><label class="form-label">Salary / CTC</label><input class="form-control" name="ctc" placeholder="₹6–8 LPA"></div>
+  <div class="col-md-4"><label class="form-label">Application deadline</label><input class="form-control" type="date" name="deadline"></div>
+  <div class="col-md-4"><label class="form-label">Source</label><input class="form-control" name="source" placeholder="Company careers page / Alumni referral"></div>
+  <div class="col-12"><label class="form-label">Application URL</label><input class="form-control" type="url" name="apply_url" placeholder="https://"></div>
+  <div class="col-12"><label class="form-label">Required skills (comma separated)</label><input class="form-control" name="skills"></div>
+  <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" rows="5" name="description"></textarea></div>
+  {% if has_role('TPO','ADMIN') %}<div class="col-12 form-check ms-2"><input class="form-check-input" type="checkbox" name="verified" id="v" checked><label class="form-check-label" for="v">Mark as verified</label></div>{% endif %}
+</div><button class="btn btn-gradient mt-4">Publish</button></form>
+{% endblock %}

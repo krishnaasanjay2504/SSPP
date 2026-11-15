@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Edit quiz{% endblock %}
+{% block content %}
+<a class="small" href="{{ url_for('admin.content') }}"><i class="bi bi-arrow-left"></i> Content</a>
+<div class="page-head mt-2"><div><h1>{{ q.title }}</h1><p>{{ q.category|label }} · {{ q.topic }} · {{ q.duration_min }} min · {{ questions|length }} questions</p></div>
+  <form method="post"><input type="hidden" name="action" value="toggle"><button class="btn btn-outline-secondary">{{ 'Deactivate' if q.is_active else 'Activate' }}</button></form></div>
+<div class="row g-4">
+  <div class="col-xl-7">
+    {% for x in questions %}
+    <div class="card mb-2"><div class="card-body">
+      <div class="d-flex justify-content-between"><strong>Q{{ loop.index }} <span class="chip gray">{{ x.qtype }}</span> <span class="chip gray">{{ x.topic }}</span></strong>
+        <form method="post" data-confirm="Delete question?"><input type="hidden" name="action" value="delete_q"><input type="hidden" name="question_id" value="{{ x.id }}"><button class="btn btn-sm btn-link text-danger"><i class="bi bi-trash"></i></button></form></div>
+      <div class="my-2" style="white-space:pre-wrap">{{ x.question_text }}</div>
+      {% for o in x.options %}<div class="small {{ 'text-success fw-bold' if (loop.index0|string in x.answer.split(',')) or o == x.answer }}">{{ loop.index0 }}. {{ o }}</div>{% endfor %}
+      {% if x.qtype == 'FILL' %}<div class="small text-success fw-bold">Answer: {{ x.answer }}</div>{% endif %}
+      {% if x.explanation %}<div class="small text-muted mt-1"><i class="bi bi-lightbulb"></i> {{ x.explanation }}</div>{% endif %}
+    </div></div>
+    {% endfor %}
+  </div>
+  <div class="col-xl-5"><div class="card timer"><div class="card-header">Add question</div><form class="card-body" method="post">
+    <select class="form-select mb-2" name="qtype" id="qt"><option value="MCQ">Multiple choice (single)</option><option value="MSQ">Multiple select</option><option value="TF">True / False</option><option value="FILL">Fill in the blank</option></select>
+    <textarea class="form-control mb-2" name="question_text" rows="3" placeholder="Question (programming/SQL/scenario text supported)" required></textarea>
+    <textarea class="form-control mb-2" name="options" rows="4" id="opts" placeholder="Options – one per line"></textarea>
+    <input class="form-control mb-1" name="answer" required placeholder="Answer">
+    <div class="form-text mb-2">MCQ: option index (0-based) e.g. <code>2</code> · MSQ: <code>0,2</code> · TF: <code>True</code>/<code>False</code> · Fill: accepted answers separated by <code>|</code></div>
+    <textarea class="form-control mb-2" name="explanation" rows="3" placeholder="Explanation shown after the test"></textarea>
+    <div class="row g-2 mb-2"><div class="col"><input class="form-control" name="topic" placeholder="Topic" value="{{ q.topic or '' }}"></div><div class="col-4"><input class="form-control" type="number" name="marks" value="1"></div></div>
+    <button class="btn btn-primary w-100">Add question</button></form></div></div>
+</div>
+{% endblock %}
+{% block scripts %}<script>const qt=document.getElementById('qt'),op=document.getElementById('opts');qt.onchange=()=>op.classList.toggle('d-none',['TF','FILL'].includes(qt.value));</script>{% endblock %}

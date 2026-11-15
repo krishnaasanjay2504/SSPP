@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, empty with context %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="d-flex align-items-center gap-3">
+    <span class="avatar lg">{{ g.user.full_name[:1] }}</span>
+    <div><h1>{{ g.user.full_name }}</h1><p>{{ s.reg_no or 'Reg. no. not set' }} · {{ s.department or '—' }} · Batch {{ s.batch_year or '—' }} · {{ g.user.email }}</p></div>
+  </div>
+  <div class="d-flex align-items-center gap-3">
+    {{ ring(score, '#16a34a' if score >= 80 else '#f59e0b') }}
+    <div><div class="fw-bold">Profile completeness</div>{% if missing %}<div class="small text-muted" style="max-width:260px">Missing: {{ missing[:5]|join(', ') }}</div>{% else %}<div class="small text-success">Complete — great job!</div>{% endif %}</div>
+  </div>
+</div>
+
+<ul class="nav nav-pills mb-3">
+  <li class="nav-item"><a class="nav-link {{ 'active' if tab=='personal' }}" data-bs-toggle="pill" href="#personal">Personal & Academic</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if tab=='items' }}" data-bs-toggle="pill" href="#items">Skills, Projects & More</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#links">Career & Links</a></li>
+</ul>
+
+<div class="tab-content">
+<form method="post" action="{{ url_for('profile.view') }}" id="profileForm">
+  <div class="tab-pane fade {{ 'show active' if tab=='personal' }}" id="personal">
+    <div class="card p-4">
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">Full name</label><input class="form-control" name="full_name" value="{{ g.user.full_name }}"></div>
+        <div class="col-md-4"><label class="form-label">Phone</label><input class="form-control" name="phone" value="{{ g.user.phone or '' }}"></div>
+        <div class="col-md-4"><label class="form-label">Register number</label><input class="form-control" name="reg_no" value="{{ s.reg_no or '' }}"></div>
+        <div class="col-md-3"><label class="form-label">Department</label><select class="form-select" name="department">{% for d in DEPARTMENTS %}<option {{ 'selected' if s.department==d }}>{{ d }}</option>{% endfor %}</select></div>
+        <div class="col-md-3"><label class="form-label">Batch (pass-out year)</label><input class="form-control" type="number" name="batch_year" value="{{ s.batch_year or '' }}"></div>
+        <div class="col-md-3"><label class="form-label">Gender</label><select class="form-select" name="gender"><option value="">Prefer not to say</option>{% for x in ['Male','Female','Other'] %}<option {{ 'selected' if s.gender==x }}>{{ x }}</option>{% endfor %}</select></div>
+        <div class="col-md-3"><label class="form-label">Date of birth</label><input class="form-control" type="date" name="dob" value="{{ s.dob.strftime('%Y-%m-%d') if s.dob else '' }}"></div>
+        <div class="col-12"><label class="form-label">Address</label><input class="form-control" name="address" value="{{ s.address or '' }}"></div>
+        <div class="col-md-2"><label class="form-label">CGPA</label><input class="form-control" type="number" step="0.01" min="0" max="10" name="cgpa" value="{{ s.cgpa or '' }}"></div>
+        <div class="col-md-2"><label class="form-label">10th %</label><input class="form-control" type="number" step="0.01" name="tenth_pct" value="{{ s.tenth_pct or '' }}"></div>
+        <div class="col-md-2"><label class="form-label">12th / Diploma %</label><input class="form-control" type="number" step="0.01" name="twelfth_pct" value="{{ s.twelfth_pct or '' }}"></div>
+        <div class="col-md-3"><label class="form-label">Active backlogs</label><input class="form-control" type="number" min="0" name="active_backlogs" value="{{ s.active_backlogs or 0 }}"></div>
+        <div class="col-md-3"><label class="form-label">Backlog history</label><input class="form-control" type="number" min="0" name="history_backlogs" value="{{ s.history_backlogs or 0 }}"></div>
+      </div>
+      <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save me-1"></i>Save profile</button></div>
+    </div>
+  </div>
+  <div class="tab-pane fade" id="links">
+    <div class="card p-4">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">Career goal</label><select class="form-select" name="career_goal"><option value="">Select…</option>{% for x in goals %}<option {{ 'selected' if s.career_goal==x }}>{{ x }}</option>{% endfor %}</select></div>
+        <div class="col-md-6"><label class="form-label">Career interests</label><input class="form-control" name="interests" value="{{ s.interests or '' }}" placeholder="e.g. Backend, Cloud, Product companies"></div>
+        <div class="col-12"><label class="form-label">Professional summary</label><textarea class="form-control" rows="3" name="summary">{{ s.summary or '' }}</textarea></div>
+        {% for k, ic in [('github','github'),('linkedin','linkedin'),('leetcode','code-square'),('hackerrank','braces'),('portfolio','globe')] %}
+        <div class="col-md-6"><label class="form-label text-capitalize"><i class="bi bi-{{ ic }} me-1"></i>{{ k }}</label><input class="form-control" name="{{ k }}" value="{{ s[k] or '' }}" placeholder="https://"></div>
+        {% endfor %}
+      </div>
+      <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save me-1"></i>Save</button></div>
+    </div>
+  </div>
+</form>
+
+  <div class="tab-pane fade {{ 'show active' if tab=='items' }}" id="items">
+    <div class="row g-3">
+    {% for t, cfg in types.items() %}
+      <div class="col-lg-6" id="sec-{{ t }}">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-{{ cfg.icon }} me-1"></i>{{ cfg.label }} <span class="badge text-bg-light">{{ by_type.get(t, [])|length }}</span></span>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#add{{ t }}"><i class="bi bi-plus-lg"></i> Add</button>
+          </div>
+          <div class="card-body">
+            {% if t in ('SKILL', 'LANGUAGE') %}
+              {% for i in by_type.get(t, []) %}
+              <form class="d-inline" method="post" action="{{ url_for('profile.delete_item', iid=i.id) }}"><span class="chip">{{ i.title }}{% if i.item_level %} · {{ i.item_level }}{% endif %}<button class="btn btn-link p-0 ms-1 text-danger" style="font-size:.8rem" title="Remove"><i class="bi bi-x"></i></button></span></form>
+              {% else %}<span class="text-muted small">None added.</span>{% endfor %}
+            {% else %}
+              <ul class="list-clean">
+              {% for i in by_type.get(t, []) %}
+                <li>
+                  <div class="d-flex justify-content-between">
+                    <div><strong>{{ i.title }}</strong>{% if i.org %} <span class="text-muted">· {{ i.org }}</span>{% endif %}
+                      <div class="small text-muted">{{ i.start_label or '' }}{% if i.end_label %} – {{ i.end_label }}{% endif %}{% if i.score %} · {{ i.score }}{% endif %}{% if i.tech %} · {{ i.tech }}{% endif %}</div>
+                      {% if i.description %}<div class="small mt-1">{{ i.description|truncate(180) }}</div>{% endif %}
+                      {% if i.url %}<a class="small" href="{{ i.url }}" target="_blank" rel="noopener">{{ i.url|truncate(50) }}</a>{% endif %}
+                    </div>
+                    <div class="text-nowrap">
+                      <button class="btn btn-sm btn-link" data-bs-toggle="modal" data-bs-target="#edit{{ i.id }}"><i class="bi bi-pencil"></i></button>
+                      <form class="d-inline" method="post" action="{{ url_for('profile.delete_item', iid=i.id) }}" data-confirm="Delete this entry?"><button class="btn btn-sm btn-link text-danger"><i class="bi bi-trash"></i></button></form>
+                    </div>
+                  </div>
+                </li>
+              {% else %}<li class="text-muted small">None added.</li>{% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% macro item_fields(t, cfg, i={}) %}
+  <input type="hidden" name="item_type" value="{{ t }}">
+  <div class="mb-2"><label class="form-label">{{ cfg.title }}</label><input class="form-control" name="title" value="{{ i.title or '' }}" required></div>
+  {% if cfg.org %}<div class="mb-2"><label class="form-label">{{ cfg.org }}</label><input class="form-control" name="org" value="{{ i.org or '' }}"></div>{% endif %}
+  {% if cfg.level %}<div class="mb-2"><label class="form-label">Proficiency</label><select class="form-select" name="item_level">{% for l in (['Beginner','Intermediate','Advanced'] if t=='SKILL' else ['Basic','Conversational','Fluent','Native']) %}<option {{ 'selected' if i.item_level==l }}>{{ l }}</option>{% endfor %}</select></div>{% endif %}
+  {% if cfg.tech %}<div class="mb-2"><label class="form-label">{{ cfg.tech }}</label><input class="form-control" name="tech" value="{{ i.tech or '' }}" placeholder="Java, Spring Boot, MySQL"></div>{% endif %}
+  {% if t not in ('SKILL','LANGUAGE') %}
+  <div class="row g-2 mb-2"><div class="col"><label class="form-label">From</label><input class="form-control" name="start_label" value="{{ i.start_label or '' }}" placeholder="Jun 2024"></div>
+  <div class="col"><label class="form-label">To</label><input class="form-control" name="end_label" value="{{ i.end_label or '' }}" placeholder="Present"></div></div>
+  {% endif %}
+  {% if cfg.score %}<div class="mb-2"><label class="form-label">{{ cfg.score }}</label><input class="form-control" name="score" value="{{ i.score or '' }}"></div>{% endif %}
+  {% if cfg.desc %}<div class="mb-2"><label class="form-label">Description</label><textarea class="form-control" rows="3" name="description">{{ i.description or '' }}</textarea></div>{% endif %}
+  {% if cfg.url or t=='CERTIFICATION' %}<div class="mb-2"><label class="form-label">Link</label><input class="form-control" name="url" value="{{ i.url or '' }}" placeholder="https://"></div>{% endif %}
+{% endmacro %}
+
+{% for t, cfg in types.items() %}
+<div class="modal fade" id="add{{ t }}" tabindex="-1"><div class="modal-dialog"><form class="modal-content" method="post" action="{{ url_for('profile.add_item') }}">
+  <div class="modal-header"><h5 class="modal-title">Add {{ cfg.label }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">{{ item_fields(t, cfg) }}</div>
+  <div class="modal-footer"><button class="btn btn-primary">Add</button></div>
+</form></div></div>
+  {% for i in by_type.get(t, []) %}
+  <div class="modal fade" id="edit{{ i.id }}" tabindex="-1"><div class="modal-dialog"><form class="modal-content" method="post" action="{{ url_for('profile.update_item', iid=i.id) }}">
+    <div class="modal-header"><h5 class="modal-title">Edit {{ cfg.label }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">{{ item_fields(t, cfg, i) }}</div>
+    <div class="modal-footer"><button class="btn btn-primary">Save</button></div>
+  </form></div></div>
+  {% endfor %}
+{% endfor %}
+{% endblock %}

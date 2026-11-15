@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring with context %}
+{% block title %}AI Career Planner{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1><i class="bi bi-compass text-primary"></i> AI Career Planner</h1><p>Skill-gap analysis for your career goal using your profile and assessment results.</p></div>
+  <form class="d-flex gap-2"><select class="form-select" name="goal" onchange="this.form.submit()">{% for x in goals %}<option {{ 'selected' if x==goal }}>{{ x }}</option>{% endfor %}</select></form></div>
+<div class="row g-4">
+  <div class="col-xl-5">
+    <div class="card p-4 mb-4"><div class="d-flex gap-3 align-items-center">{{ ring(gap.readiness, '#16a34a' if gap.readiness >= 70 else '#f59e0b') }}<div><h5 class="fw-bold mb-0">{{ gap.goal }}</h5><div class="small text-muted">Skill coverage for this role</div></div></div>
+      <h6 class="fw-bold mt-4">Skills you have</h6><div>{% for s in gap.matched %}<span class="chip green">{{ s|title }}</span>{% else %}<span class="small text-muted">None yet — add skills in your profile</span>{% endfor %}</div>
+      <h6 class="fw-bold mt-3">Skills to build</h6><div>{% for s in gap.missing %}<span class="chip red">{{ s|title }}</span>{% else %}<span class="small text-success">All covered 🎉</span>{% endfor %}</div>
+      {% if gap.weak_topics %}<h6 class="fw-bold mt-3">Weak assessment topics</h6><div>{% for s in gap.weak_topics %}<span class="chip amber">{{ s }}</span>{% endfor %}</div>{% endif %}
+    </div>
+  </div>
+  <div class="col-xl-7">
+    <div class="card mb-4"><div class="card-header">Recommended learning plan</div><ul class="list-clean px-3">
+      {% for p in gap.plan %}<li class="d-flex justify-content-between align-items-center"><span><strong>{{ p.week }}</strong> · {{ p.skill }}</span>
+        {% if p.path and paths.get(p.path) %}<a class="btn btn-sm btn-outline-primary" href="{{ url_for('learn.path', pid=paths[p.path].id) }}">{{ paths[p.path].name }}</a>{% endif %}</li>
+      {% else %}<li class="small text-muted">You already cover the core skills. Focus on mock tests, coding practice and interviews.</li>{% endfor %}
+      <li><strong>Then</strong> · Take a <a href="{{ url_for('learn.quizzes', category='MOCK') }}">mock placement test</a> and an <a href="{{ url_for('learn.interview_bank') }}">AI mock interview</a></li></ul></div>
+    <div class="card"><div class="card-header d-flex justify-content-between align-items-center"><span><i class="bi bi-stars me-1"></i>Personalised 8-week AI plan</span>
+      <form method="post"><input type="hidden" name="goal" value="{{ goal }}"><button class="btn btn-sm btn-gradient" {{ 'disabled' if not llm }}>Generate</button></form></div>
+      <div class="card-body">{% if ai_plan %}{{ ai_plan|md }}{% elif not llm %}<div class="small text-muted">Set an Anthropic API key on the server (see README) to enable AI-generated plans. The rule-based plan above is always available.</div>{% else %}<div class="small text-muted">Click Generate for a detailed week-by-week plan.</div>{% endif %}</div></div>
+  </div>
+</div>
+{% endblock %}

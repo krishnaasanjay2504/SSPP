@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Higher Studies & Scholarships{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Higher Studies, Scholarships & Counselling</h1><p>GATE / GRE / CAT preparation links, scholarships and career counselling resources.</p></div></div>
+<div class="row g-4 mb-4">
+  {% for t, ic, c, links in [
+    ('GATE', 'cpu', 'indigo', [('Official GATE portal','https://gate2026.iitg.ac.in/'),('NPTEL courses','https://nptel.ac.in/'),('Previous papers (GATE Overflow)','https://gateoverflow.in/')]),
+    ('GRE / MS abroad', 'globe-americas', 'sky', [('ETS GRE','https://www.ets.org/gre.html'),('TOEFL','https://www.ets.org/toefl.html'),('IELTS','https://ielts.org/')]),
+    ('CAT / MBA', 'graph-up', 'violet', [('CAT official','https://iimcat.ac.in/'),('GMAT','https://www.mba.com/exams/gmat-exam')]),
+    ('Scholarships', 'cash-coin', 'green', [('National Scholarship Portal','https://scholarships.gov.in/'),('AICTE schemes','https://www.aicte.gov.in/schemes')]) ] %}
+  <div class="col-md-6 col-xl-3"><div class="card h-100"><div class="card-body">
+    <div class="stat p-0 mb-3"><div class="ic ic-{{ c }}"><i class="bi bi-{{ ic }}"></i></div><h6 class="fw-bold m-0">{{ t }}</h6></div>
+    <ul class="list-clean small">{% for l, u in links %}<li><a href="{{ u }}" target="_blank" rel="noopener">{{ l }} <i class="bi bi-box-arrow-up-right"></i></a></li>{% endfor %}</ul></div></div></div>
+  {% endfor %}
+</div>
+<div class="row g-4">
+  <div class="col-lg-8"><div class="card"><div class="card-header">Latest scholarship & higher-studies announcements</div>
+    <div class="card-body">{% for a in anns %}<div class="mb-3 pb-3 border-bottom"><span class="chip">{{ a.category|label }}</span> <strong>{{ a.title }}</strong><div class="small mt-1">{{ a.body|md }}</div>{% if a.link %}<a class="small" href="{{ a.link }}" target="_blank" rel="noopener">More info</a>{% endif %}</div>{% else %}<div class="small text-muted">No announcements yet.</div>{% endfor %}</div></div></div>
+  <div class="col-lg-4"><div class="card"><div class="card-header"><i class="bi bi-person-video3 me-1"></i>Career counselling</div><div class="card-body small">
+    <p>Not sure whether to take a job, pursue higher studies or prepare for competitive exams?</p>
+    <ul><li>Book a session with your faculty mentor or the TPO via the <a href="{{ url_for('community.helpdesk') }}">Helpdesk</a>.</li><li>Ask alumni who chose different paths in <a href="{{ url_for('community.mentoring') }}">Alumni Mentoring</a>.</li><li>Get a personalised roadmap from the <a href="{{ url_for('assistant.chat_page') }}">Placement AI Assistant</a>.</li></ul></div></div></div>
+</div>
+{% endblock %}

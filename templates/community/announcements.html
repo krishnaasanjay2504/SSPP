@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty with context %}
+{% block title %}Announcements{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Announcement Board</h1><p>Placement news, events & workshops, hackathons, scholarships, higher studies and preparation material.</p></div>
+  {% if has_role('TPO','ADMIN','FACULTY') %}<button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#annModal"><i class="bi bi-plus-lg me-1"></i>New announcement</button>{% endif %}</div>
+<ul class="nav nav-pills mb-3 flex-wrap">
+  <li class="nav-item"><a class="nav-link {{ 'active' if not cat }}" href="{{ url_for('community.announcements') }}">All</a></li>
+  {% for k, v in cats.items() %}<li class="nav-item"><a class="nav-link {{ 'active' if cat==k }}" href="{{ url_for('community.announcements', category=k) }}">{{ v }}</a></li>{% endfor %}
+</ul>
+<div class="row g-3">
+{% for a in rows %}
+  <div class="col-lg-6"><div class="card h-100"><div class="card-body">
+    <div class="d-flex justify-content-between"><span class="chip">{{ cats.get(a.category, a.category) }}</span><span class="small text-muted">{{ a.created_at|ago }}</span></div>
+    <h5 class="fw-bold mt-2">{{ a.title }}</h5><div class="small">{{ a.body|md }}</div>
+    {% if a.link %}<a class="btn btn-sm btn-outline-primary" href="{{ a.link }}" target="_blank" rel="noopener">Open link <i class="bi bi-box-arrow-up-right"></i></a>{% endif %}
+  </div><div class="card-footer bg-transparent small text-muted d-flex justify-content-between">Posted by {{ a.full_name or 'Placement Cell' }}
+    {% if has_role('TPO','ADMIN','FACULTY') %}<form method="post" action="{{ url_for('community.delete_announcement', aid=a.id) }}" data-confirm="Delete?"><button class="btn btn-link btn-sm text-danger p-0">Delete</button></form>{% endif %}</div></div></div>
+{% else %}<div class="col-12"><div class="card">{{ empty('megaphone', 'No announcements.') }}</div></div>{% endfor %}
+</div>
+{% if has_role('TPO','ADMIN','FACULTY') %}
+<div class="modal fade" id="annModal"><div class="modal-dialog modal-lg"><form class="modal-content" method="post" action="{{ url_for('community.new_announcement') }}">
+  <div class="modal-header"><h5 class="modal-title">New announcement</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body row g-2">
+    <div class="col-md-8"><label class="form-label">Title</label><input class="form-control" name="title" required></div>
+    <div class="col-md-4"><label class="form-label">Category</label><select class="form-select" name="category">{% for k, v in cats.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></div>
+    <div class="col-12"><label class="form-label">Message (markdown)</label><textarea class="form-control" rows="6" name="body"></textarea></div>
+    <div class="col-12"><label class="form-label">Link</label><input class="form-control" name="link" placeholder="https://"></div>
+    <div class="col-12 form-check ms-2"><input class="form-check-input" type="checkbox" name="notify" id="nt" checked><label class="form-check-label" for="nt">Notify all students</label></div>
+  </div><div class="modal-footer"><button class="btn btn-primary">Publish</button></div></form></div></div>
+{% endif %}
+{% endblock %}

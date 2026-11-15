@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if d.id else 'New' }} drive{% endblock %}
+{% block content %}
+{% set dtf = '%Y-%m-%dT%H:%M' %}
+<div class="page-head"><div><h1>{{ 'Edit placement drive' if d.id else 'Create placement drive' }}</h1>
+  <p>Define the role, eligibility rules and rounds. {% if g.user.user_role == 'RECRUITER' %}New drives are reviewed by the TPO before students can see them.{% endif %}</p></div></div>
+<form method="post" class="card p-4">
+  <h6 class="fw-bold text-primary">Role</h6>
+  <div class="row g-3 mb-4">
+    <div class="col-md-4"><label class="form-label">Company</label><select class="form-select" name="company_id" required>{% for c in companies %}<option value="{{ c.id }}" {{ 'selected' if d.company_id==c.id }}>{{ c.name }}</option>{% endfor %}</select></div>
+    <div class="col-md-4"><label class="form-label">Job role</label><input class="form-control" name="job_role" value="{{ d.job_role or '' }}" required placeholder="Programmer Analyst Trainee"></div>
+    <div class="col-md-2"><label class="form-label">Type</label><select class="form-select" name="job_type">{% for k in ['FULL_TIME','INTERNSHIP','INTERNSHIP_PPO'] %}<option value="{{ k }}" {{ 'selected' if d.job_type==k }}>{{ k|label }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><label class="form-label">CTC (LPA)</label><input class="form-control" type="number" step="0.01" name="ctc_lpa" value="{{ d.ctc_lpa or '' }}" required></div>
+    <div class="col-md-6"><label class="form-label">Locations (comma separated)</label><input class="form-control" name="locations" value="{{ d.locations or '' }}" placeholder="Chennai,Bengaluru,Hyderabad"></div>
+    <div class="col-md-6"><label class="form-label">Required skills (comma separated)</label><input class="form-control" name="required_skills" value="{{ d.required_skills or '' }}" placeholder="Java,SQL,Data Structures"></div>
+    <div class="col-12"><label class="form-label">Job description</label><textarea class="form-control" rows="5" name="job_desc">{{ d.job_desc or '' }}</textarea></div>
+  </div>
+  <h6 class="fw-bold text-primary">Eligibility rules</h6>
+  <div class="row g-3 mb-4">
+    <div class="col-md-2"><label class="form-label">Min CGPA</label><input class="form-control" type="number" step="0.01" name="min_cgpa" value="{{ d.min_cgpa if d.min_cgpa is not none else 6.5 }}"></div>
+    <div class="col-md-2"><label class="form-label">Min 10th %</label><input class="form-control" type="number" step="0.01" name="min_tenth" value="{{ d.min_tenth or 0 }}"></div>
+    <div class="col-md-2"><label class="form-label">Min 12th %</label><input class="form-control" type="number" step="0.01" name="min_twelfth" value="{{ d.min_twelfth or 0 }}"></div>
+    <div class="col-md-2"><label class="form-label">Batch</label><input class="form-control" type="number" name="batch_year" value="{{ d.batch_year or now.year + 1 }}"></div>
+    <div class="col-md-2"><label class="form-label">Max active backlogs</label><input class="form-control" type="number" name="max_active_backlogs" value="{{ d.max_active_backlogs or 0 }}"></div>
+    <div class="col-md-2"><label class="form-label">Max backlog history</label><input class="form-control" type="number" name="max_history_backlogs" value="{{ d.max_history_backlogs if d.max_history_backlogs is not none else 99 }}"><div class="form-text">99 = no limit</div></div>
+    <div class="col-12"><label class="form-label d-block">Eligible branches</label>
+      {% set br = (d.branches or 'CSE,IT,ECE')|csv %}
+      {% for b in DEPARTMENTS %}<input type="checkbox" class="btn-check" name="branches" value="{{ b }}" id="b{{b}}" {{ 'checked' if b in br }}><label class="btn btn-sm btn-outline-primary me-1" for="b{{b}}">{{ b }}</label>{% endfor %}</div>
+  </div>
+  <h6 class="fw-bold text-primary">Schedule & rounds</h6>
+  <div class="row g-3">
+    <div class="col-md-3"><label class="form-label">Registration deadline</label><input class="form-control" type="datetime-local" name="reg_deadline" value="{{ d.reg_deadline.strftime(dtf) if d.reg_deadline else '' }}" required></div>
+    <div class="col-md-3"><label class="form-label">Drive date</label><input class="form-control" type="datetime-local" name="drive_date" value="{{ d.drive_date.strftime(dtf) if d.drive_date else '' }}"></div>
+    <div class="col-md-6"><label class="form-label">Venue</label><input class="form-control" name="venue" value="{{ d.venue or '' }}" placeholder="Main Auditorium / Online"></div>
+    <div class="col-md-9"><label class="form-label">Rounds (comma separated, in order)</label><input class="form-control" name="rounds" value="{{ d.rounds or 'Aptitude Test,Coding Test,Technical Interview,HR Interview' }}"></div>
+    {% if g.user.user_role in ('TPO','ADMIN') %}
+    <div class="col-md-3"><label class="form-label">Status</label><select class="form-select" name="status">{% for s in ['OPEN','CLOSED','COMPLETED','PENDING_APPROVAL'] %}<option value="{{ s }}" {{ 'selected' if d.status==s }}>{{ s|label }}</option>{% endfor %}</select></div>
+    {% endif %}
+  </div>
+  <div class="mt-4"><button class="btn btn-gradient"><i class="bi bi-save me-1"></i>{{ 'Save changes' if d.id else 'Create drive' }}</button></div>
+</form>
+{% endblock %}

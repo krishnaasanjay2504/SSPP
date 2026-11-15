@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Ask a question{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Ask a question</h1><p>Be specific. Include what you tried and where you're stuck.</p></div></div>
+<form method="post" class="card p-4" style="max-width:900px">
+  <div class="mb-3"><label class="form-label fw-semibold">Title</label><input class="form-control" name="title" value="{{ f.get('title','') }}" required placeholder="e.g. What is the difference between INNER JOIN and LEFT JOIN in SQL?"></div>
+  <div class="mb-3"><label class="form-label fw-semibold">Details</label><textarea class="form-control" rows="8" name="body" placeholder="Markdown supported. Use ``` for code blocks.">{{ f.get('body','') }}</textarea></div>
+  <div class="mb-3"><label class="form-label fw-semibold">Tags (comma separated)</label><input class="form-control" name="tags" id="tags" value="{{ f.get('tags','') }}" placeholder="SQL, DBMS, Interview">
+    <div class="mt-2">{% for t in tags %}<button type="button" class="chip border-0" onclick="addTag('{{ t }}')">+ {{ t }}</button>{% endfor %}</div></div>
+  <div class="mb-3"><label class="form-label fw-semibold">Ask</label><select class="form-select" name="audience" style="max-width:300px"><option value="ALL">Everyone</option><option value="ALUMNI" {{ 'selected' if f.get('audience')=='ALUMNI' }}>Alumni (Student-to-Alumni Q&A)</option></select></div>
+  <button class="btn btn-gradient">Post question</button>
+</form>
+{% endblock %}
+{% block scripts %}<script>function addTag(t){const i=document.getElementById('tags');const s=i.value.split(',').map(x=>x.trim()).filter(Boolean);if(!s.includes(t))s.push(t);i.value=s.join(', ');}</script>{% endblock %}

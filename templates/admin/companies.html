@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, logo with context %}
+{% block title %}Companies{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Companies</h1><p>{{ rows|length }} recruiters</p></div><button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#cModal"><i class="bi bi-plus-lg me-1"></i>Add company</button></div>
+<div class="card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Company</th><th>Industry</th><th>HQ</th><th>Drives</th><th>Offers</th><th>Status</th><th></th></tr></thead><tbody>
+{% for c in rows %}<tr><td><div class="d-flex gap-2 align-items-center">{{ logo(c.name) }}<div><div class="fw-semibold">{{ c.name }}</div>{% if c.website %}<a class="small" href="{{ c.website }}" target="_blank" rel="noopener">{{ c.website }}</a>{% endif %}</div></div></td>
+  <td>{{ c.industry or '—' }}</td><td>{{ c.hq_location or '—' }}</td><td>{{ c.drives }}</td><td>{{ c.offers }}</td><td>{{ badge(c.status) }}</td>
+  <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('learn.company_prep', company=c.name) }}">Prep page</a></td></tr>{% endfor %}
+</tbody></table></div></div>
+<div class="modal fade" id="cModal"><div class="modal-dialog"><form class="modal-content" method="post">
+  <div class="modal-header"><h5 class="modal-title">Add company</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body row g-2"><div class="col-12"><label class="form-label">Name</label><input class="form-control" name="name" required></div>
+    <div class="col-6"><label class="form-label">Industry</label><input class="form-control" name="industry"></div><div class="col-6"><label class="form-label">HQ</label><input class="form-control" name="hq_location"></div>
+    <div class="col-12"><label class="form-label">Website</label><input class="form-control" name="website"></div><div class="col-12"><label class="form-label">About</label><textarea class="form-control" name="about" rows="3"></textarea></div></div>
+  <div class="modal-footer"><button class="btn btn-primary">Add</button></div></form></div></div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, meter with context %}
+{% block title %}Skill Builder{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Skill Builder</h1><p>Structured learning paths with videos, notes, practice, quizzes and badges.</p></div>
+  <a class="btn btn-outline-primary" href="{{ url_for('assistant.career') }}"><i class="bi bi-compass me-1"></i>Personalised plan</a></div>
+{% if topics %}
+<div class="card p-3 mb-4"><div class="d-flex flex-wrap gap-4">
+  {% for t, v in topics.items() %}<div class="text-center">{{ ring(v, '#16a34a' if v >= 70 else ('#f59e0b' if v >= 40 else '#e11d48'), true) }}<div class="small fw-semibold mt-1">{{ t }}</div></div>{% endfor %}
+</div><div class="small text-muted mt-2">Topic scores from your quiz attempts</div></div>
+{% endif %}
+<div class="row g-4">
+  {% for p in paths %}
+  <div class="col-md-6 col-xl-4">
+    <a class="card drive-card h-100 text-reset text-decoration-none" href="{{ url_for('learn.path', pid=p.id) }}">
+      <div class="card-body">
+        <div class="d-flex gap-3 align-items-center mb-3">
+          <div class="company-logo" style="background:{{ p.color }}"><i class="bi bi-{{ p.icon }}"></i></div>
+          <div class="flex-grow-1"><h5 class="fw-bold mb-0">{{ p.name }}</h5><div class="small text-muted">{{ p.done }} / {{ p.total }} steps</div></div>
+          {% if p.pct == 100 %}<span class="chip green"><i class="bi bi-award-fill"></i>Badge</span>{% endif %}
+        </div>
+        {{ meter(p.pct) }}<div class="small text-end mt-1 fw-semibold">{{ p.pct }}%</div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

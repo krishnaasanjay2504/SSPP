@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge, ring, meter with context %}
+{% block title %}{{ s.full_name }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('admin.students') }}" class="small"><i class="bi bi-arrow-left"></i> Students</a>
+<div class="card p-4 my-3"><div class="d-flex flex-wrap gap-3 align-items-center">
+  <span class="avatar lg">{{ s.full_name[:1] }}</span>
+  <div class="flex-grow-1"><h2 class="fw-bold mb-0">{{ s.full_name }}</h2><div class="text-muted">{{ s.reg_no }} · {{ s.department }} · Batch {{ s.batch_year }} · {{ s.email }} · {{ s.phone or '' }}</div>
+    <div class="mt-1">CGPA <strong>{{ s.cgpa }}</strong> · 10th {{ s.tenth_pct }}% · 12th {{ s.twelfth_pct }}% · Active backlogs {{ s.active_backlogs }} · Goal: {{ s.career_goal or '—' }}</div></div>
+  {{ ring(r.overall, '#4f46e5', false) }}<div class="small text-muted">Overall<br>readiness</div>
+  {% if has_role('TPO','ADMIN') %}<form method="post" action="{{ url_for('admin.set_student_status', uid=s.id) }}" class="d-flex gap-2"><select class="form-select form-select-sm" name="status">{% for x in ['NOT_PLACED','PLACED','HIGHER_STUDIES','NOT_INTERESTED'] %}<option {{ 'selected' if s.placement_status==x }}>{{ x }}</option>{% endfor %}</select><button class="btn btn-sm btn-primary">Set</button></form>{% endif %}
+</div></div>
+<div class="row g-4">
+  <div class="col-lg-4"><div class="card mb-4"><div class="card-header">Readiness</div><div class="card-body">
+    {% for l, v in [('Profile', r.profile), ('Resume', r.resume), ('Skills', r.skill), ('Aptitude', r.aptitude), ('Technical', r.technical), ('Coding', r.coding), ('Interview', r.interview)] %}
+    <div class="mb-2"><div class="d-flex justify-content-between small"><span>{{ l }}</span><strong>{{ v }}%</strong></div>{{ meter(v) }}</div>{% endfor %}
+    {% if topics %}<hr><div class="small fw-semibold mb-1">Topic scores</div>{% for t, v in topics.items() %}<span class="chip {{ 'green' if v >= 70 else ('amber' if v >= 40 else 'red') }}">{{ t }} {{ v }}%</span>{% endfor %}{% endif %}
+  </div></div>
+  <div class="card"><div class="card-header">Resumes</div><ul class="list-clean px-3">{% for x in resumes %}<li><a href="{{ url_for('resume.preview', rid=x.id) }}" target="_blank">{{ x.title }}</a></li>{% else %}<li class="small text-muted">No resumes.</li>{% endfor %}</ul></div></div>
+  <div class="col-lg-8">
+    <div class="card mb-4"><div class="card-header">Applications & offers</div><div class="table-responsive"><table class="table mb-0"><thead><tr><th>Company</th><th>Role</th><th>Status</th><th>Applied</th></tr></thead><tbody>
+      {% for x in apps %}<tr><td>{{ x.company }}</td><td>{{ x.job_role }}</td><td>{{ badge(x.status) }}</td><td class="small">{{ x.applied_at|d }}</td></tr>{% else %}<tr><td colspan="4" class="text-muted small">No applications.</td></tr>{% endfor %}
+      {% for o in offers %}<tr class="table-success"><td>{{ o.company_name }}</td><td>{{ o.job_role }} · ₹{{ o.ctc_lpa }} LPA</td><td>{{ badge(o.status) }}</td><td class="small">Offer</td></tr>{% endfor %}
+    </tbody></table></div></div>
+    <div class="card mb-4"><div class="card-header">Profile items</div><div class="card-body">
+      {% for i in items %}<span class="chip {{ 'gray' if i.item_type != 'SKILL' }}" title="{{ i.item_type }}">{{ i.item_type|title }}: {{ i.title }}</span>{% else %}<span class="small text-muted">Nothing added.</span>{% endfor %}</div></div>
+    <div class="card"><div class="card-header">Recent assessments</div><div class="table-responsive"><table class="table mb-0"><thead><tr><th>Quiz</th><th>Topic</th><th>Score</th><th>Accuracy</th><th>When</th></tr></thead><tbody>
+      {% for x in attempts %}<tr><td>{{ x.title }}</td><td>{{ x.topic }}</td><td>{{ x.score }}/{{ x.max_score }}</td><td>{{ x.accuracy }}%</td><td class="small">{{ x.submitted_at|ago }}</td></tr>{% else %}<tr><td colspan="5" class="small text-muted">No attempts.</td></tr>{% endfor %}</tbody></table></div></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ q.title }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ q.title }}</h1><p>{{ questions|length }} questions · {{ q.duration_min }} minutes · Unanswered questions count as wrong.</p></div></div>
+<form method="post" action="{{ url_for('learn.quiz_submit', qid=q.id) }}" id="quizForm">
+<div class="row g-4">
+  <div class="col-lg-9">
+    {% for x in questions %}
+    <div class="card quiz-q mb-3" id="q{{ loop.index }}"><div class="card-body">
+      <div class="d-flex justify-content-between mb-2"><span class="fw-bold">Q{{ loop.index }}.</span><span class="chip gray">{{ {'MCQ':'Single choice','MSQ':'Multiple select','TF':'True / False','FILL':'Fill in the blank'}[x.qtype] }} · {{ x.marks }} mark{{ 's' if x.marks > 1 }}</span></div>
+      <div class="mb-3" style="white-space:pre-wrap">{{ x.question_text }}</div>
+      {% if x.qtype == 'FILL' %}
+        <input class="form-control" name="q{{ x.id }}" placeholder="Your answer" autocomplete="off">
+      {% else %}
+        {% for o in x.options %}
+        <label class="opt"><input class="form-check-input" type="{{ 'checkbox' if x.qtype == 'MSQ' else 'radio' }}" name="q{{ x.id }}" value="{{ o if x.qtype == 'TF' else loop.index0 }}">{{ o }}</label>
+        {% endfor %}
+      {% endif %}
+    </div></div>
+    {% endfor %}
+  </div>
+  <div class="col-lg-3">
+    <div class="card p-3 timer">
+      <div class="text-muted small">Time remaining</div>
+      <div class="display-6 fw-bold" id="timer">--:--</div>
+      <div class="d-flex flex-wrap gap-1 my-3">{% for x in questions %}<a href="#q{{ loop.index }}" class="btn btn-sm btn-outline-secondary qnav" data-q="q{{ x.id }}" style="width:38px">{{ loop.index }}</a>{% endfor %}</div>
+      <button class="btn btn-gradient w-100" onclick="return confirm('Submit the test?')">Submit test</button>
+    </div>
+  </div>
+</div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+let left = {{ q.duration_min }} * 60; const t = document.getElementById('timer'), f = document.getElementById('quizForm');
+let submitted = false;
+f.addEventListener('submit', () => submitted = true);
+const tick = () => { const m = Math.floor(left / 60), s = left % 60; t.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  t.classList.toggle('text-danger', left < 60); if (left-- <= 0 && !submitted) { submitted = true; f.submit(); } };
+tick(); setInterval(tick, 1000);
+f.addEventListener('change', () => document.querySelectorAll('.qnav').forEach(b => {
+  const answered = [...f.querySelectorAll(`[name="${b.dataset.q}"]`)].some(i => (i.type === 'text' ? i.value.trim() : i.checked));
+  b.classList.toggle('btn-primary', answered); b.classList.toggle('btn-outline-secondary', !answered); }));
+f.addEventListener('input', () => f.dispatchEvent(new Event('change')));
+window.addEventListener('beforeunload', e => { if (!submitted) { e.preventDefault(); e.returnValue = ''; } });
+</script>
+{% endblock %}
