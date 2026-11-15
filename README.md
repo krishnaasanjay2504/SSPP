@@ -16,7 +16,7 @@ python run.py --dev             # development server with auto-reload
 
 | Role | Email | Password |
 |---|---|---|
-| Student | krishnaasanjayj@gmail.com | 12345678 |
+| Student | student@sspp.edu | Student@123 |
 | Placement Officer (TPO) | tpo@sspp.edu | Tpo@12345 |
 | Faculty / Trainer | faculty@sspp.edu | Faculty@123 |
 | Recruiter (Cognizant) | hr@cognizant.com | Recruit@123 |
